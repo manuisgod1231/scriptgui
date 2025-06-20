@@ -19,8 +19,6 @@ frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.BackgroundTransparency = 0.2
 frame.BorderSizePixel = 0
 frame.AnchorPoint = Vector2.new(0, 0)
-frame.Active = true
-frame.Draggable = true
 frame.Parent = screenGui
 
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
