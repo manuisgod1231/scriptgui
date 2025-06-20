@@ -1,4 +1,3 @@
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
@@ -8,7 +7,7 @@ local hrp = character:WaitForChild("HumanoidRootPart")
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "AutoTeleportGui"
+screenGui.Name = "Auto farm"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
@@ -34,7 +33,7 @@ button.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
 button.TextColor3 = Color3.new(1, 1, 1)
 button.Font = Enum.Font.GothamBold
 button.TextSize = 20
-button.Text = "Start Auto Teleport"
+button.Text = "Start Money Farm (lv.8 Require)"
 button.Parent = frame
 
 local uiCornerButton = Instance.new("UICorner")
@@ -128,10 +127,10 @@ button.MouseButton1Click:Connect(function()
 	autoTeleport = not autoTeleport
 
 	if autoTeleport then
-		button.Text = "Stop Auto Teleport"
+		button.Text = "Stop Auto Farm"
 		button.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
 	else
-		button.Text = "Start Auto Teleport"
+		button.Text = "Start Auto Farm (lv.8 Require)"
 		button.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
 	end
 
