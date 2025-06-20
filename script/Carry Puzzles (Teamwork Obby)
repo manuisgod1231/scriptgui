@@ -1,6 +1,4 @@
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
@@ -13,7 +11,7 @@ screenGui.Name = "AutoFarmUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Create Frame container
+-- Create Frame
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 260, 0, 90)
 frame.Position = UDim2.new(0, 10, 0, 10)
@@ -21,6 +19,8 @@ frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.BackgroundTransparency = 0.2
 frame.BorderSizePixel = 0
 frame.AnchorPoint = Vector2.new(0, 0)
+frame.Active = true
+frame.Draggable = true
 frame.Parent = screenGui
 
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
@@ -72,44 +72,6 @@ exitButton.MouseButton1Click:Connect(function()
 	screenGui:Destroy()
 end)
 
--- Draggable Frame
-local dragging = false
-local dragInput, dragStart, startPos
-
-local function updateDrag(input)
-	local delta = input.Position - dragStart
-	frame.Position = UDim2.new(
-		startPos.X.Scale, startPos.X.Offset + delta.X,
-		startPos.Y.Scale, startPos.Y.Offset + delta.Y
-	)
-end
-
-frame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
-		dragStart = input.Position
-		startPos = frame.Position
-
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
-end)
-
-frame.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement then
-		dragInput = input
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if dragging and input == dragInput then
-		updateDrag(input)
-	end
-end)
-
 -- Toggle Auto Teleport
 button.MouseButton1Click:Connect(function()
 	autoTeleport = not autoTeleport
@@ -123,16 +85,13 @@ button.MouseButton1Click:Connect(function()
 	end
 
 	while autoTeleport do
-		-- Update character/HRP for respawn safety
 		character = player.Character or player.CharacterAdded:Wait()
 		hrp = character:WaitForChild("HumanoidRootPart")
 
-		-- First teleport
 		local portal = workspace:WaitForChild("Portals"):WaitForChild("7"):WaitForChild("completitionrequirements")
 		hrp.CFrame = portal.CFrame
 		wait(1.5)
 
-		-- Winner teleport
 		local winner = workspace:WaitForChild("Maps"):WaitForChild("7"):WaitForChild("WinnersTeleport"):WaitForChild("TouchPart")
 		hrp.CFrame = winner.CFrame
 		wait(1.5)
