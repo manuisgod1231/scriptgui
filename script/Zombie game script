@@ -23,7 +23,7 @@ local Section = Tab:AddSection({Name = "Auto Attack"})
 local autoAttack = false
 
 Tab:AddToggle({
-	Name = "Enable Auto Attack",
+	Name = "Enable Auto Shot (Sniper Only)",
 	Default = false,
 	Save = true,
 	Flag = "AutoAttack",
