@@ -60,7 +60,8 @@ local zombieNames = {
 	["ZombieNpc"] = true,
 	["NpcSummonedZombie"] = true,
 	["Necromancer"] = true,
-	["SummonMathmathmath898"] = true
+	["SummonMathmathmath898"] = true,
+	["HumanNPC"] = true
 }
 
 local function isAlive(char)
