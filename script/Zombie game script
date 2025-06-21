@@ -1,52 +1,81 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local RemoteEvent = ReplicatedStorage:WaitForChild("NetworkEvents"):WaitForChild("RemoteEvent")
+-- Load OrionLib
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
 
--- Wait for LivingThings and team to load
-local LivingThings
-repeat
-	LivingThings = workspace:FindFirstChild("LivingThings")
-	wait(1)
-until LivingThings
+-- Create Window
+local Window = OrionLib:MakeWindow({
+    Name = "ChatGPT Hub",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "ChatGPT_Hub"
+})
 
-repeat wait() until LocalPlayer.Team
+-- Create Tab
+local Tab = Window:MakeTab({
+	Name = "Combat",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
 
--- List of zombie types to target
-local zombieNames = {
-	["ZombieNpc"] = true,
-	["NpcSummonedZombie"] = true,
-	["Necromancer"] = true
-}
+-- Create Toggle Section
+local Section = Tab:AddSection({Name = "Auto Attack"})
 
--- Check if alive
-local function isAlive(character)
-	local humanoid = character:FindFirstChild("Humanoid")
-	return humanoid and humanoid.Health > 0
-end
+-- Toggle logic
+local autoAttack = false
 
-while true do
-	-- Attack all zombies of specific types
-	for _, npc in pairs(LivingThings:GetChildren()) do
-		if zombieNames[npc.Name] and isAlive(npc) then
-			local args = {
-				"GUN_DAMAGE",
-				npc
-			}
-			RemoteEvent:FireServer(unpack(args))
-		end
+Tab:AddToggle({
+	Name = "Enable Auto Attack",
+	Default = false,
+	Save = true,
+	Flag = "AutoAttack",
+	Callback = function(Value)
+		autoAttack = Value
 	end
+})
 
-	-- Attack enemy players only
-	for _, player in pairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team and player.Character and isAlive(player.Character) then
-			local args = {
-				"GUN_DAMAGE",
-				player.Character
-			}
-			RemoteEvent:FireServer(unpack(args))
-		end
-	end
+-- Attack Logic
+task.spawn(function()
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    local RemoteEvent = ReplicatedStorage:WaitForChild("NetworkEvents"):WaitForChild("RemoteEvent")
 
-	wait(0) -- ultra fast
-end
+    -- Wait for workspace.LivingThings
+    local LivingThings
+    repeat
+        LivingThings = workspace:FindFirstChild("LivingThings")
+        task.wait(1)
+    until LivingThings
+
+    repeat task.wait() until LocalPlayer.Team
+
+    local zombieNames = {
+        ["ZombieNpc"] = true,
+        ["NpcSummonedZombie"] = true,
+        ["Necromancer"] = true
+    }
+
+    local function isAlive(character)
+        local humanoid = character:FindFirstChild("Humanoid")
+        return humanoid and humanoid.Health > 0
+    end
+
+    -- Attack loop
+    while true do
+        if autoAttack then
+            for _, npc in pairs(LivingThings:GetChildren()) do
+                if zombieNames[npc.Name] and isAlive(npc) then
+                    RemoteEvent:FireServer("GUN_DAMAGE", npc)
+                end
+            end
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team and player.Character and isAlive(player.Character) then
+                    RemoteEvent:FireServer("GUN_DAMAGE", player.Character)
+                end
+            end
+        end
+        task.wait(0)
+    end
+end)
+
+-- Init GUI
+OrionLib:Init()
