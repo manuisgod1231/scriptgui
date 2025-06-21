@@ -1,81 +1,94 @@
--- Load OrionLib
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/GRPGaming/Key-System/refs/heads/Xycer-Hub-Script/ZusumeLib(Slider)')))()
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+local RemoteEvent = ReplicatedStorage:WaitForChild("NetworkEvents"):WaitForChild("RemoteEvent")
 
--- Create Window
-local Window = OrionLib:MakeWindow({
-    Name = "ChatGPT Hub",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "ChatGPT_Hub"
-})
+-- Create GUI
+local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+ScreenGui.Name = "ChatGPT_Hub"
 
--- Create Tab
-local Tab = Window:MakeTab({
-	Name = "Combat",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
-})
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 200, 0, 100)
+Frame.Position = UDim2.new(0, 100, 0, 100)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Frame.Active = true
+Frame.Draggable = true
+Frame.BorderSizePixel = 0
 
--- Create Toggle Section
-local Section = Tab:AddSection({Name = "Auto Attack"})
+-- Title Label
+local Title = Instance.new("TextLabel", Frame)
+Title.Size = UDim2.new(1, -30, 0, 20)
+Title.Position = UDim2.new(0, 5, 0, 5)
+Title.Text = "ChatGPT Hub"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Toggle logic
-local autoAttack = false
+-- Exit Button
+local ExitButton = Instance.new("TextButton", Frame)
+ExitButton.Size = UDim2.new(0, 20, 0, 20)
+ExitButton.Position = UDim2.new(1, -25, 0, 5)
+ExitButton.Text = "X"
+ExitButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+ExitButton.TextColor3 = Color3.new(1, 1, 1)
+ExitButton.Font = Enum.Font.SourceSansBold
+ExitButton.TextSize = 14
 
-Tab:AddToggle({
-	Name = "Enable Auto Shot (Sniper Only)",
-	Default = false,
-	Save = true,
-	Flag = "AutoAttack",
-	Callback = function(Value)
-		autoAttack = Value
-	end
-})
-
--- Attack Logic
-task.spawn(function()
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-    local RemoteEvent = ReplicatedStorage:WaitForChild("NetworkEvents"):WaitForChild("RemoteEvent")
-
-    -- Wait for workspace.LivingThings
-    local LivingThings
-    repeat
-        LivingThings = workspace:FindFirstChild("LivingThings")
-        task.wait(1)
-    until LivingThings
-
-    repeat task.wait() until LocalPlayer.Team
-
-    local zombieNames = {
-        ["ZombieNpc"] = true,
-        ["NpcSummonedZombie"] = true,
-        ["Necromancer"] = true
-    }
-
-    local function isAlive(character)
-        local humanoid = character:FindFirstChild("Humanoid")
-        return humanoid and humanoid.Health > 0
-    end
-
-    -- Attack loop
-    while true do
-        if autoAttack then
-            for _, npc in pairs(LivingThings:GetChildren()) do
-                if zombieNames[npc.Name] and isAlive(npc) then
-                    RemoteEvent:FireServer("GUN_DAMAGE", npc)
-                end
-            end
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team and player.Character and isAlive(player.Character) then
-                    RemoteEvent:FireServer("GUN_DAMAGE", player.Character)
-                end
-            end
-        end
-        task.wait(0.2)
-    end
+ExitButton.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
 end)
 
--- Init GUI
-OrionLib:Init()
+-- Toggle Button
+local ToggleButton = Instance.new("TextButton", Frame)
+ToggleButton.Size = UDim2.new(1, -10, 0, 40)
+ToggleButton.Position = UDim2.new(0, 5, 0, 35)
+ToggleButton.Text = "Toggle AutoShoot"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToggleButton.TextColor3 = Color3.new(1, 1, 1)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.TextSize = 14
+
+-- Logic
+local LivingThings
+repeat LivingThings = workspace:FindFirstChild("LivingThings") wait(1) until LivingThings
+repeat wait() until LocalPlayer.Team
+
+local zombieNames = {
+	["ZombieNpc"] = true,
+	["NpcSummonedZombie"] = true,
+	["Necromancer"] = true
+}
+
+local function isAlive(char)
+	local hum = char:FindFirstChild("Humanoid")
+	return hum and hum.Health > 0
+end
+
+local enabled = false
+
+ToggleButton.MouseButton1Click:Connect(function()
+	enabled = not enabled
+	ToggleButton.Text = enabled and "AutoShoot: ON" or "AutoShoot: OFF"
+end)
+
+-- Auto loop
+task.spawn(function()
+	while true do
+		if enabled then
+			for _, npc in pairs(LivingThings:GetChildren()) do
+				if zombieNames[npc.Name] and isAlive(npc) then
+					RemoteEvent:FireServer("GUN_DAMAGE", npc)
+				end
+			end
+			for _, player in pairs(Players:GetPlayers()) do
+				if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team and player.Character and isAlive(player.Character) then
+					RemoteEvent:FireServer("GUN_DAMAGE", player.Character)
+				end
+			end
+		end
+		wait(0.1)
+	end
+end)
