@@ -1,0 +1,52 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RemoteEvent = ReplicatedStorage:WaitForChild("NetworkEvents"):WaitForChild("RemoteEvent")
+
+-- Wait for LivingThings and team to load
+local LivingThings
+repeat
+	LivingThings = workspace:FindFirstChild("LivingThings")
+	wait(1)
+until LivingThings
+
+repeat wait() until LocalPlayer.Team
+
+-- List of zombie types to target
+local zombieNames = {
+	["ZombieNpc"] = true,
+	["NpcSummonedZombie"] = true
+	-- Add more zombie names if needed
+}
+
+-- Check if a character is alive
+local function isAlive(character)
+	local humanoid = character:FindFirstChild("Humanoid")
+	return humanoid and humanoid.Health > 0
+end
+
+while true do
+	-- Kill all matching zombies
+	for _, npc in pairs(LivingThings:GetChildren()) do
+		if zombieNames[npc.Name] and isAlive(npc) then
+			local args = {
+				"GUN_DAMAGE",
+				npc
+			}
+			RemoteEvent:FireServer(unpack(args))
+		end
+	end
+
+	-- Kill enemy players
+	for _, player in pairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team and player.Character and isAlive(player.Character) then
+			local args = {
+				"GUN_DAMAGE",
+				player.Character
+			}
+			RemoteEvent:FireServer(unpack(args))
+		end
+	end
+
+	wait(0) -- ultra fast loop
+end
