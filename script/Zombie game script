@@ -59,7 +59,8 @@ repeat wait() until LocalPlayer.Team
 local zombieNames = {
 	["ZombieNpc"] = true,
 	["NpcSummonedZombie"] = true,
-	["Necromancer"] = true
+	["Necromancer"] = true,
+	["SummonMathmathmath898"] = true
 }
 
 local function isAlive(char)
