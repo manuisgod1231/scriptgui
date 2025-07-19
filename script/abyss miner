@@ -73,7 +73,7 @@ MainTab:CreateToggle({
                     if not success then
                         warn("❗ Sell loop error:", err)
                     end
-                    task.wait(0.2)
+                    task.wait(1)
                 end
             end)
         end
