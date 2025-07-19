@@ -14,8 +14,61 @@ local MainTab = Window:CreateTab("Main", 4483362458)
 
 local digRunning = false
 local sellRunning = false
+local hitboxRunning = false
 
--- DIG toggle
+-- 🔨 HITBOX Function
+local function fireHitBox()
+    local args = {
+        20,                -- Damage
+        "Standard",        -- Hit type
+        false,             -- Critical hit
+        "Xplr. Pickaxe",   -- Tool name
+        0.85               -- Multiplier
+    }
+
+    local success, err = pcall(function()
+        ReplicatedStorage:WaitForChild("RemoteEvent")
+            :WaitForChild("HitBox")
+            :FireServer(unpack(args))
+    end)
+
+    if success then
+        print("✅ HitBox triggered")
+    else
+        warn("❗ HitBox error:", err)
+    end
+end
+
+-- 🔁 HITBOX TOGGLE
+MainTab:CreateToggle({
+    Name = "Auto HitBox",
+    CurrentValue = false,
+    Flag = "HitBoxToggle",
+    Callback = function(enabled)
+        hitboxRunning = enabled
+        if enabled then
+            print("🟢 Auto HitBox started")
+            task.spawn(function()
+                while hitboxRunning do
+                    fireHitBox()
+                    task.wait(0.1)
+                end
+            end)
+        else
+            print("🔴 Auto HitBox stopped")
+        end
+    end,
+})
+
+-- 🎯 HITBOX BUTTON
+MainTab:CreateButton({
+    Name = "Trigger HitBox Once",
+    Callback = function()
+        fireHitBox()
+    end,
+})
+
+-- DIG TOGGLE
 MainTab:CreateToggle({
     Name = "Start Dig",
     CurrentValue = false,
@@ -23,27 +76,28 @@ MainTab:CreateToggle({
     Callback = function(enabled)
         digRunning = enabled
         if enabled then
+            print("🔨 Dig started")
             task.spawn(function()
                 while digRunning do
+                    local args = { 9999, "Dig", true }
                     local success, err = pcall(function()
-                        local args = {
-                            9999,
-                            "Dig",
-                            true
-                        }
-                        ReplicatedStorage:WaitForChild("RemoteEvent"):WaitForChild("HitBox"):FireServer(unpack(args))
+                        ReplicatedStorage:WaitForChild("RemoteEvent")
+                            :WaitForChild("HitBox")
+                            :FireServer(unpack(args))
                     end)
                     if not success then
-                        warn("Dig error:", err)
+                        warn("❗ Dig error:", err)
                     end
                     task.wait(0.1)
                 end
             end)
+        else
+            print("⛔ Dig stopped")
         end
     end,
 })
 
--- SELL toggle (updated with correct path)
+-- SELL TOGGLE
 MainTab:CreateToggle({
     Name = "Start Sell",
     CurrentValue = false,
@@ -51,6 +105,7 @@ MainTab:CreateToggle({
     Callback = function(enabled)
         sellRunning = enabled
         if enabled then
+            print("💰 Auto Sell started")
             task.spawn(function()
                 while sellRunning do
                     local success, err = pcall(function()
@@ -59,11 +114,9 @@ MainTab:CreateToggle({
                             :WaitForChild("Npcs")
                             :WaitForChild("Rei ' The professer")
                             :WaitForChild("Rei")
-
-                        local dialogue = rei:WaitForChild("HumanoidRootPart")
-                            :WaitForChild("Dialogue")
-
+                        local dialogue = rei:WaitForChild("HumanoidRootPart"):WaitForChild("Dialogue")
                         local args = { rei, dialogue }
+
                         ReplicatedStorage:WaitForChild("RemoteEvent")
                             :WaitForChild("SellAllInventory")
                             :FireServer(unpack(args))
@@ -71,11 +124,13 @@ MainTab:CreateToggle({
                         print("✅ Sell triggered")
                     end)
                     if not success then
-                        warn("❗ Sell loop error:", err)
+                        warn("❗ Sell error:", err)
                     end
                     task.wait(1)
                 end
             end)
+        else
+            print("⛔ Sell stopped")
         end
     end,
 })
