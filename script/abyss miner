@@ -1,0 +1,98 @@
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+
+local guiName = "ToggleRemoteUI"
+local existingGui = player:WaitForChild("PlayerGui"):FindFirstChild(guiName)
+if existingGui then
+	existingGui:Destroy()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = guiName
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 130)
+frame.Position = UDim2.new(0.5, -100, 0.8, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
+
+local hitboxBtn = Instance.new("TextButton")
+hitboxBtn.Size = UDim2.new(1, -20, 0, 50)
+hitboxBtn.Position = UDim2.new(0, 10, 0, 10)
+hitboxBtn.Text = "Start HitBox"
+hitboxBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+hitboxBtn.TextColor3 = Color3.new(1, 1, 1)
+hitboxBtn.Font = Enum.Font.SourceSansBold
+hitboxBtn.TextSize = 22
+hitboxBtn.Parent = frame
+
+local sellBtn = Instance.new("TextButton")
+sellBtn.Size = UDim2.new(1, -20, 0, 50)
+sellBtn.Position = UDim2.new(0, 10, 0, 70)
+sellBtn.Text = "Start Sell"
+sellBtn.BackgroundColor3 = Color3.fromRGB(50, 255, 100)
+sellBtn.TextColor3 = Color3.new(1, 1, 1)
+sellBtn.Font = Enum.Font.SourceSansBold
+sellBtn.TextSize = 22
+sellBtn.Parent = frame
+
+local hitboxRunning = false
+local sellRunning = false
+
+local function runHitBox()
+	while hitboxRunning do
+		local args = {
+			9999,
+			"Standard",
+			false
+		}
+		ReplicatedStorage:WaitForChild("RemoteEvent"):WaitForChild("HitBox"):FireServer(unpack(args))
+		wait(0.1)
+	end
+end
+
+-- Sell loop function (fixed path)
+local function runSell()
+	while sellRunning do
+		local success, err = pcall(function()
+			local npcFolder = workspace:WaitForChild("Rei ' The professer")
+			local rei = npcFolder:WaitForChild("Rei")
+			local hrp = rei:WaitForChild("HumanoidRootPart")
+			local dialogue = hrp:WaitForChild("Dialogue")
+
+			local args = { rei, dialogue }
+			ReplicatedStorage:WaitForChild("RemoteEvent"):WaitForChild("SellAllInventory"):FireServer(unpack(args))
+		end)
+
+		if not success then
+			warn("Sell loop error:", err)
+		end
+
+		wait(0.1)
+	end
+end
+
+hitboxBtn.MouseButton1Click:Connect(function()
+	hitboxRunning = not hitboxRunning
+	hitboxBtn.Text = hitboxRunning and "Stop dig" or "Start dig"
+	hitboxBtn.BackgroundColor3 = hitboxRunning and Color3.fromRGB(255, 50, 50) or Color3.fromRGB(50, 150, 255)
+	if hitboxRunning then
+		task.spawn(runHitBox)
+	end
+end)
+
+sellBtn.MouseButton1Click:Connect(function()
+	sellRunning = not sellRunning
+	sellBtn.Text = sellRunning and "Stop Sell" or "Start Sell"
+	sellBtn.BackgroundColor3 = sellRunning and Color3.fromRGB(255, 120, 50) or Color3.fromRGB(50, 255, 100)
+	if sellRunning then
+		task.spawn(runSell)
+	end
+end)
