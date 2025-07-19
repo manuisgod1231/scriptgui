@@ -17,20 +17,15 @@ local sellRunning = false
 local hitboxRunning = false
 
 -- 🔨 HITBOX Function
-local function fireHitBox()
-    local args = {
-        20000,                -- Damage
-        "Standard",        -- Hit type
-        false,             -- Critical hit
-        "Xplr. Pickaxe",   -- Tool name
-        0.1             -- Multiplier
-    }
+local args = {
+	20,
+	"Standard",
+	false,
+	"Xplr. Pickaxe",
+	0.85
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("HitBox"):FireServer(unpack(args))
 
-    local success, err = pcall(function()
-        ReplicatedStorage:WaitForChild("RemoteEvent")
-            :WaitForChild("HitBox")
-            :FireServer(unpack(args))
-    end)
 
     if success then
         print("✅ HitBox triggered")
@@ -79,12 +74,15 @@ MainTab:CreateToggle({
             print("🔨 Dig started")
             task.spawn(function()
                 while digRunning do
-                    local args = { 9999, "Dig", true }
-                    local success, err = pcall(function()
-                        ReplicatedStorage:WaitForChild("RemoteEvent")
-                            :WaitForChild("HitBox")
-                            :FireServer(unpack(args))
-                    end)
+                    local args = {
+	20,
+	"Standard",
+	false,
+	"Xplr. Pickaxe",
+	0.85
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):WaitForChild("HitBox"):FireServer(unpack(args))
+
                     if not success then
                         warn("❗ Dig error:", err)
                     end
