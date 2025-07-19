@@ -23,7 +23,7 @@ local function fireHitBox()
         "Standard",        -- Hit type
         false,             -- Critical hit
         "Xplr. Pickaxe",   -- Tool name
-        0              -- Multiplier
+        0.1             -- Multiplier
     }
 
     local success, err = pcall(function()
