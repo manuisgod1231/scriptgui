@@ -19,7 +19,7 @@ local hitboxRunning = false
 -- 🔨 HITBOX Function
 local function fireHitBox()
     local args = {
-        20,                -- Damage
+        20000,                -- Damage
         "Standard",        -- Hit type
         false,             -- Critical hit
         "Xplr. Pickaxe",   -- Tool name
