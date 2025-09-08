@@ -125,6 +125,7 @@ equipBox.TextColor3 = Color3.fromRGB(0,0,0)
 equipBox.Text = "" -- starts empty
 equipBox.PlaceholderText = "Type - VIP, Mini, Race, Default, DefalutV2, BigWheel, Rope, LongLarry, Mine, Nyan"
 equipBox.Font = Enum.Font.Gotham
+equipBox.TextScaled = ture
 equipBox.TextSize = 10
 equipBox.Parent = frame
 
