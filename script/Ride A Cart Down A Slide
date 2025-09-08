@@ -1,12 +1,8 @@
--- ChatGPT HUB iOS 18-style (with Flip Once button)
--- Save this as hub.lua
-
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
-local GetEquipped = ReplicatedStorage:WaitForChild("GetEquipped")
 local Flip = ReplicatedStorage:WaitForChild("Flip")
 local Turn = ReplicatedStorage:WaitForChild("Turn")
 
@@ -117,7 +113,7 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Equip TextBox (starts empty)
+-- Equip TextBox (starts empty, placeholder unchanged)
 local equipBox = Instance.new("TextBox")
 equipBox.Size = UDim2.new(0.9,0,0,35)
 equipBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
@@ -133,18 +129,20 @@ local boxCorner = Instance.new("UICorner")
 boxCorner.CornerRadius = UDim.new(0,12)
 boxCorner.Parent = equipBox
 
--- Equip Button (direct TextBox input)
-createButton("Spawn Cart", function()
+-- Button sets EquippedCart instead of calling Remote
+createButton("Set Cart", function()
     local itemName = equipBox.Text
     if itemName ~= "" then
-        local success, result = pcall(function()
-            return GetEquipped:InvokeServer(itemName)
-        end)
-        if success then
-            print("Equipped:", result)
-        else
-            warn("Error calling GetEquipped:", result)
+        -- Ensure EquippedCart exists
+        if not LocalPlayer:FindFirstChild("EquippedCart") then
+            local strVal = Instance.new("StringValue")
+            strVal.Name = "EquippedCart"
+            strVal.Value = ""
+            strVal.Parent = LocalPlayer
         end
+
+        LocalPlayer.EquippedCart.Value = itemName
+        print("EquippedCart set to:", itemName)
     else
         warn("Please type something in the box!")
     end
@@ -155,7 +153,7 @@ createToggle("Flip Loop", false, function(value)
     flipLoopRunning = value
 end)
 
--- New Flip Once Button (directly under Flip Loop)
+-- Flip Once Button
 createButton("Flip Once", function()
     local success, err = pcall(function()
         Flip:FireServer()
