@@ -1,4 +1,4 @@
--- ChatGPT HUB iOS 18-style full script (robust version)
+-- ChatGPT HUB iOS 18-style full script with case-insensitive Equip
 -- Save this as hub.lua
 
 -- Services
@@ -132,12 +132,24 @@ local boxCorner = Instance.new("UICorner")
 boxCorner.CornerRadius = UDim.new(0,12)
 boxCorner.Parent = equipBox
 
--- Equip Button
+-- List of valid equip items
+local validItems = {"VIP","Sword","Shield"} -- replace with your real items
+
+-- Equip Button (case-insensitive, partial match)
 createButton("Equip Item", function()
-    local item = equipBox.Text
-    if item ~= "" then
+    local input = equipBox.Text:lower()
+    local itemName = nil
+
+    for _, name in ipairs(validItems) do
+        if name:lower():sub(1,#input) == input then
+            itemName = name
+            break
+        end
+    end
+
+    if itemName then
         local success, result = pcall(function()
-            return GetEquipped:InvokeServer(item)
+            return GetEquipped:InvokeServer(itemName)
         end)
         if success then
             print("Equipped:", result)
@@ -145,7 +157,7 @@ createButton("Equip Item", function()
             warn("Error:", result)
         end
     else
-        warn("Type item first!")
+        warn("No matching item found!")
     end
 end)
 
@@ -175,7 +187,7 @@ end)
 -- GUI Toggle Button (bottom-right corner, draggable)
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0, 50, 0, 50)
-toggleButton.Position = UDim2.new(1, -60, 1, -60) -- bottom-right
+toggleButton.Position = UDim2.new(1, -60, 1, -60)
 toggleButton.BackgroundColor3 = Color3.fromRGB(52,199,89)
 toggleButton.Text = "≡"
 toggleButton.Font = Enum.Font.GothamBold
@@ -187,11 +199,9 @@ local toggleCorner = Instance.new("UICorner")
 toggleCorner.CornerRadius = UDim.new(0,12)
 toggleCorner.Parent = toggleButton
 
--- Make toggle button draggable
 toggleButton.Active = true
 toggleButton.Draggable = true
 
--- Show/hide main frame
 local guiVisible = true
 toggleButton.MouseButton1Click:Connect(function()
     guiVisible = not guiVisible
