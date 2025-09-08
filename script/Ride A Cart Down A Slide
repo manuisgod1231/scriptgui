@@ -20,7 +20,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ChatGPT_HUB"
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
--- Main Frame
+-- Main Frame (Draggable)
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 300, 0, 400)
 frame.Position = UDim2.new(0.5, -150, 0.5, -200)
@@ -31,12 +31,10 @@ frame.Draggable = true
 frame.Parent = screenGui
 frame.ClipsDescendants = true
 
--- Rounded corners
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0,16)
 corner.Parent = frame
 
--- UIListLayout
 local layout = Instance.new("UIListLayout")
 layout.Parent = frame
 layout.Padding = UDim.new(0,12)
@@ -113,11 +111,12 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Equip TextBox
+-- Equip TextBox (starts empty)
 local equipBox = Instance.new("TextBox")
 equipBox.Size = UDim2.new(0.9,0,0,35)
 equipBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
 equipBox.TextColor3 = Color3.fromRGB(0,0,0)
+equipBox.Text = "" -- starts empty
 equipBox.PlaceholderText = "Type item to equip (e.g., VIP)"
 equipBox.Font = Enum.Font.Gotham
 equipBox.TextSize = 16
@@ -165,4 +164,25 @@ task.spawn(function()
         end
         task.wait(0.2)
     end
+end)
+
+-- GUI Toggle Button (top-left corner)
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 50, 0, 50)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.BackgroundColor3 = Color3.fromRGB(52,199,89)
+toggleButton.Text = "≡"
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 25
+toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
+toggleButton.Parent = screenGui
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0,12)
+toggleCorner.Parent = toggleButton
+
+local guiVisible = true
+toggleButton.MouseButton1Click:Connect(function()
+    guiVisible = not guiVisible
+    frame.Visible = guiVisible
 end)
