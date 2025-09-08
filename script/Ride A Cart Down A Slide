@@ -1,4 +1,4 @@
--- ChatGPT HUB iOS 18-style full script with case-insensitive Equip
+-- ChatGPT HUB iOS 18-style (direct TextBox input)
 -- Save this as hub.lua
 
 -- Services
@@ -123,7 +123,7 @@ equipBox.Size = UDim2.new(0.9,0,0,35)
 equipBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
 equipBox.TextColor3 = Color3.fromRGB(0,0,0)
 equipBox.Text = "" -- starts empty
-equipBox.PlaceholderText = "Type item to equip (e.g., VIP)"
+equipBox.PlaceholderText = "Type item to equip"
 equipBox.Font = Enum.Font.Gotham
 equipBox.TextSize = 16
 equipBox.Parent = frame
@@ -132,32 +132,20 @@ local boxCorner = Instance.new("UICorner")
 boxCorner.CornerRadius = UDim.new(0,12)
 boxCorner.Parent = equipBox
 
--- List of valid equip items
-local validItems = {"VIP","Sword","Shield"} -- replace with your real items
-
--- Equip Button (case-insensitive, partial match)
+-- Equip Button (direct TextBox input)
 createButton("Equip Item", function()
-    local input = equipBox.Text:lower()
-    local itemName = nil
-
-    for _, name in ipairs(validItems) do
-        if name:lower():sub(1,#input) == input then
-            itemName = name
-            break
-        end
-    end
-
-    if itemName then
+    local itemName = equipBox.Text
+    if itemName ~= "" then
         local success, result = pcall(function()
             return GetEquipped:InvokeServer(itemName)
         end)
         if success then
             print("Equipped:", result)
         else
-            warn("Error:", result)
+            warn("Error calling GetEquipped:", result)
         end
     else
-        warn("No matching item found!")
+        warn("Please type something in the box!")
     end
 end)
 
