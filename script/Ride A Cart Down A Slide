@@ -1,4 +1,4 @@
--- ChatGPT HUB iOS 18-style (direct TextBox input)
+-- ChatGPT HUB iOS 18-style (with Flip Once button)
 -- Save this as hub.lua
 
 -- Services
@@ -152,6 +152,18 @@ end)
 -- Flip Loop Toggle
 createToggle("Flip Loop", false, function(value)
     flipLoopRunning = value
+end)
+
+-- New Flip Once Button (directly under Flip Loop)
+createButton("Flip Once", function()
+    local success, err = pcall(function()
+        Flip:FireServer()
+    end)
+    if not success then
+        warn("Error firing Flip:", err)
+    else
+        print("Flip fired once!")
+    end
 end)
 
 -- Turn Button
