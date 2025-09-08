@@ -1,0 +1,168 @@
+-- ChatGPT HUB iOS 18-style full script
+-- Save this as hub.lua and upload to GitHub
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+local GetEquipped = ReplicatedStorage:WaitForChild("GetEquipped")
+local Flip = ReplicatedStorage:WaitForChild("Flip")
+local Turn = ReplicatedStorage:WaitForChild("Turn")
+
+-- Remove old GUI if exists
+if LocalPlayer:FindFirstChild("ChatGPT_HUB") then
+    LocalPlayer["ChatGPT_HUB"]:Destroy()
+end
+
+-- ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ChatGPT_HUB"
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 400)
+frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+frame.BackgroundColor3 = Color3.fromRGB(242,242,247)
+frame.AnchorPoint = Vector2.new(0.5,0.5)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
+frame.ClipsDescendants = true
+
+-- Rounded corners
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0,16)
+corner.Parent = frame
+
+-- UIListLayout
+local layout = Instance.new("UIListLayout")
+layout.Parent = frame
+layout.Padding = UDim.new(0,12)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.VerticalAlignment = Enum.VerticalAlignment.Top
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundTransparency = 1
+title.Text = "ChatGPT HUB"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextColor3 = Color3.fromRGB(0,0,0)
+title.Parent = frame
+
+-- Flip loop state
+local flipLoopRunning = false
+
+-- Button creation function
+local function createButton(text, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.9,0,0,40)
+    btn.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    btn.TextColor3 = Color3.fromRGB(0,0,0)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 16
+    btn.Text = text
+    btn.Parent = frame
+    btn.AutoButtonColor = true
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0,12)
+    btnCorner.Parent = btn
+
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+-- Toggle creation function
+local function createToggle(text, default, callback)
+    local toggleFrame = Instance.new("Frame")
+    toggleFrame.Size = UDim2.new(0.9,0,0,40)
+    toggleFrame.BackgroundTransparency = 1
+    toggleFrame.Parent = frame
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.7,0,1,0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 16
+    label.TextColor3 = Color3.fromRGB(0,0,0)
+    label.Parent = toggleFrame
+
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Size = UDim2.new(0.3,0,1,0)
+    toggleBtn.Position = UDim2.new(0.7,0,0,0)
+    toggleBtn.BackgroundColor3 = default and Color3.fromRGB(52,199,89) or Color3.fromRGB(142,142,147)
+    toggleBtn.Text = ""
+    toggleBtn.Parent = toggleFrame
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,12)
+    corner.Parent = toggleBtn
+
+    local state = default
+    toggleBtn.MouseButton1Click:Connect(function()
+        state = not state
+        toggleBtn.BackgroundColor3 = state and Color3.fromRGB(52,199,89) or Color3.fromRGB(142,142,147)
+        callback(state)
+    end)
+end
+
+-- Equip TextBox
+local equipBox = Instance.new("TextBox")
+equipBox.Size = UDim2.new(0.9,0,0,35)
+equipBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
+equipBox.TextColor3 = Color3.fromRGB(0,0,0)
+equipBox.PlaceholderText = "Type item to equip (e.g., VIP)"
+equipBox.Font = Enum.Font.Gotham
+equipBox.TextSize = 16
+equipBox.Parent = frame
+
+local boxCorner = Instance.new("UICorner")
+boxCorner.CornerRadius = UDim.new(0,12)
+boxCorner.Parent = equipBox
+
+-- Equip Button
+createButton("Equip Item", function()
+    local item = equipBox.Text
+    if item ~= "" then
+        local success, result = pcall(function()
+            return GetEquipped:InvokeServer(item)
+        end)
+        if success then
+            print("Equipped:", result)
+        else
+            warn("Error:", result)
+        end
+    else
+        warn("Type item first!")
+    end
+end)
+
+-- Flip Loop Toggle
+createToggle("Flip Loop", false, function(value)
+    flipLoopRunning = value
+end)
+
+-- Turn Button
+createButton("Turn", function()
+    Turn:FireServer()
+end)
+
+-- Background Flip Loop
+task.spawn(function()
+    while true do
+        if flipLoopRunning then
+            local success, err = pcall(function()
+                Flip:FireServer()
+            end)
+            if not success then warn("Flip error:",err) end
+        end
+        task.wait(0.2)
+    end
+end)
