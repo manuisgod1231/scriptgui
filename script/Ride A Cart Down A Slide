@@ -1,5 +1,5 @@
--- ChatGPT HUB iOS 18-style full script
--- Save this as hub.lua and upload to GitHub
+-- ChatGPT HUB iOS 18-style full script (robust version)
+-- Save this as hub.lua
 
 -- Services
 local Players = game:GetService("Players")
@@ -18,6 +18,7 @@ end
 -- ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ChatGPT_HUB"
+screenGui.ResetOnSpawn = false -- GUI stays after death
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Main Frame (Draggable)
@@ -54,6 +55,9 @@ title.Parent = frame
 
 -- Flip loop state
 local flipLoopRunning = false
+
+-- Store toggles/buttons to reset
+local toggleStates = {}
 
 -- Button creation function
 local function createButton(text, callback)
@@ -104,8 +108,10 @@ local function createToggle(text, default, callback)
     corner.Parent = toggleBtn
 
     local state = default
+    toggleStates[toggleBtn] = state
     toggleBtn.MouseButton1Click:Connect(function()
         state = not state
+        toggleStates[toggleBtn] = state
         toggleBtn.BackgroundColor3 = state and Color3.fromRGB(52,199,89) or Color3.fromRGB(142,142,147)
         callback(state)
     end)
@@ -166,10 +172,10 @@ task.spawn(function()
     end
 end)
 
--- GUI Toggle Button (top-left corner)
+-- GUI Toggle Button (bottom-right corner, draggable)
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0, 50, 0, 50)
-toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.Position = UDim2.new(1, -60, 1, -60) -- bottom-right
 toggleButton.BackgroundColor3 = Color3.fromRGB(52,199,89)
 toggleButton.Text = "≡"
 toggleButton.Font = Enum.Font.GothamBold
@@ -181,8 +187,21 @@ local toggleCorner = Instance.new("UICorner")
 toggleCorner.CornerRadius = UDim.new(0,12)
 toggleCorner.Parent = toggleButton
 
+-- Make toggle button draggable
+toggleButton.Active = true
+toggleButton.Draggable = true
+
+-- Show/hide main frame
 local guiVisible = true
 toggleButton.MouseButton1Click:Connect(function()
     guiVisible = not guiVisible
     frame.Visible = guiVisible
 end)
+
+-- Reset toggles/buttons if script runs again
+for btn, state in pairs(toggleStates) do
+    btn.BackgroundColor3 = Color3.fromRGB(142,142,147)
+    toggleStates[btn] = false
+end
+flipLoopRunning = false
+equipBox.Text = ""
