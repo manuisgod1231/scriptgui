@@ -134,7 +134,7 @@ boxCorner.CornerRadius = UDim.new(0,12)
 boxCorner.Parent = equipBox
 
 -- Equip Button (direct TextBox input)
-createButton("Equip Item", function()
+createButton("Spawn Cart", function()
     local itemName = equipBox.Text
     if itemName ~= "" then
         local success, result = pcall(function()
