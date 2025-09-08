@@ -14,8 +14,9 @@ end
 -- ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ChatGPT_HUB"
-screenGui.DisplayOrder = 999
-screenGui.ResetOnSpawn = false -- GUI stays after death
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- makes ZIndex work globally
+screenGui.DisplayOrder = 999999
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Main Frame (Draggable)
