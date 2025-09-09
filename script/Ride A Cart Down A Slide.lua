@@ -1,8 +1,10 @@
 -- Services
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
+local GetEquipped = ReplicatedStorage:WaitForChild("GetEquipped")
 local Flip = ReplicatedStorage:WaitForChild("Flip")
 local Turn = ReplicatedStorage:WaitForChild("Turn")
 
@@ -15,14 +17,13 @@ end
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ChatGPT_HUB"
 screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- makes ZIndex work globally
-screenGui.DisplayOrder = 999999
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
--- Main Frame (Draggable)
+-- Main Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 400)
-frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+frame.Size = UDim2.new(0, 300, 0, 450)
+frame.Position = UDim2.new(0.5, -150, 0.5, -225)
 frame.BackgroundColor3 = Color3.fromRGB(242,242,247)
 frame.AnchorPoint = Vector2.new(0.5,0.5)
 frame.Active = true
@@ -53,11 +54,9 @@ title.Parent = frame
 
 -- Flip loop state
 local flipLoopRunning = false
-
--- Store toggles/buttons to reset
 local toggleStates = {}
 
--- Button creation function
+-- Button function
 local function createButton(text, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.9,0,0,40)
@@ -77,7 +76,7 @@ local function createButton(text, callback)
     return btn
 end
 
--- Toggle creation function
+-- Toggle function
 local function createToggle(text, default, callback)
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Size = UDim2.new(0.9,0,0,40)
@@ -115,64 +114,98 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Equip TextBox (starts empty, placeholder unchanged)
-local equipBox = Instance.new("TextBox")
-equipBox.Size = UDim2.new(0.9,0,0,35)
-equipBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
-equipBox.TextColor3 = Color3.fromRGB(0,0,0)
-equipBox.Text = "" -- starts empty
-equipBox.PlaceholderText = "Type - VIP, Mini, Race, Default, DefalutV2, BigWheel, Rope, LongLarry, Mine, Nyan"
-equipBox.Font = Enum.Font.Gotham
-equipBox.TextScaled = true
-equipBox.TextSize = 10
-equipBox.Parent = frame
+-- Cart selector
+local selectorFrame = Instance.new("Frame")
+selectorFrame.Size = UDim2.new(0.9,0,0,130)
+selectorFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
+selectorFrame.Parent = frame
 
-local boxCorner = Instance.new("UICorner")
-boxCorner.CornerRadius = UDim.new(0,12)
-boxCorner.Parent = equipBox
+local selectorCorner = Instance.new("UICorner")
+selectorCorner.CornerRadius = UDim.new(0,12)
+selectorCorner.Parent = selectorFrame
 
--- Button sets EquippedCart instead of calling Remote
-createButton("Set Cart", function()
-    local itemName = equipBox.Text
-    if itemName ~= "" then
-        -- Ensure EquippedCart exists
-        if not LocalPlayer:FindFirstChild("EquippedCart") then
-            local strVal = Instance.new("StringValue")
-            strVal.Name = "EquippedCart"
-            strVal.Value = ""
-            strVal.Parent = LocalPlayer
+local selectedCartLabel = Instance.new("TextLabel")
+selectedCartLabel.Size = UDim2.new(1,0,0,30)
+selectedCartLabel.BackgroundTransparency = 1
+selectedCartLabel.Text = "Select Cart..."
+selectedCartLabel.Font = Enum.Font.Gotham
+selectedCartLabel.TextSize = 14
+selectedCartLabel.TextColor3 = Color3.fromRGB(0,0,0)
+selectedCartLabel.Parent = selectorFrame
+
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1,0,1,-30)
+scroll.Position = UDim2.new(0,0,0,30)
+scroll.BackgroundTransparency = 1
+scroll.CanvasSize = UDim2.new(0,0,0,0)
+scroll.ScrollBarThickness = 6
+scroll.Parent = selectorFrame
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Parent = scroll
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0,4)
+
+local carts = {"VIP","Mini","Race","Default","DefaultV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
+for _,cartName in ipairs(carts) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1,0,0,30)
+    btn.BackgroundColor3 = Color3.fromRGB(230,230,230)
+    btn.Text = cartName
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.TextColor3 = Color3.fromRGB(0,0,0)
+    btn.Parent = scroll
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,8)
+    corner.Parent = btn
+
+    btn.MouseButton1Click:Connect(function()
+        selectedCartLabel.Text = cartName
+    end)
+end
+
+listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scroll.CanvasSize = UDim2.new(0,0,0,listLayout.AbsoluteContentSize.Y)
+end)
+
+-- Spawn Cart
+createButton("Spawn Cart", function()
+    local cart = selectedCartLabel.Text
+    if cart ~= "Select Cart..." then
+        local success, result = pcall(function()
+            return GetEquipped:InvokeServer(cart)
+        end)
+        if success then
+            print("Equipped:", result)
+        else
+            warn("Error calling GetEquipped:", result)
         end
-
-        LocalPlayer.EquippedCart.Value = itemName
-        print("EquippedCart set to:", itemName)
     else
-        warn("Please type something in the box!")
+        warn("No cart selected!")
     end
 end)
 
--- Flip Loop Toggle
+-- Flip Loop
 createToggle("Flip Loop", false, function(value)
     flipLoopRunning = value
 end)
 
--- Flip Once Button
+-- Flip Once
 createButton("Flip Once", function()
     local success, err = pcall(function()
         Flip:FireServer()
     end)
-    if not success then
-        warn("Error firing Flip:", err)
-    else
-        print("Flip fired once!")
-    end
+    if not success then warn("Error firing Flip:", err) end
 end)
 
--- Turn Button
+-- Turn
 createButton("Turn", function()
     Turn:FireServer()
 end)
 
--- Background Flip Loop
+-- Flip loop thread
 task.spawn(function()
     while true do
         if flipLoopRunning then
@@ -185,34 +218,46 @@ task.spawn(function()
     end
 end)
 
--- GUI Toggle Button (bottom-right corner, draggable)
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 50, 0, 50)
-toggleButton.Position = UDim2.new(1, -60, 1, -60)
-toggleButton.BackgroundColor3 = Color3.fromRGB(52,199,89)
-toggleButton.Text = "≡"
-toggleButton.Font = Enum.Font.GothamBold
-toggleButton.TextSize = 25
-toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
-toggleButton.Parent = screenGui
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0,12)
-toggleCorner.Parent = toggleButton
-
-toggleButton.Active = true
-toggleButton.Draggable = true
-
+-- GUI toggle handling
 local guiVisible = true
-toggleButton.MouseButton1Click:Connect(function()
-    guiVisible = not guiVisible
-    frame.Visible = guiVisible
-end)
 
--- Reset toggles/buttons if script runs again
+if UserInputService.TouchEnabled then
+    -- Mobile toggle button
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Size = UDim2.new(0, 50, 0, 50)
+    toggleButton.Position = UDim2.new(1, -60, 1, -60)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(52,199,89)
+    toggleButton.Text = "≡"
+    toggleButton.Font = Enum.Font.GothamBold
+    toggleButton.TextSize = 25
+    toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
+    toggleButton.Parent = screenGui
+
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(0,12)
+    toggleCorner.Parent = toggleButton
+
+    toggleButton.Active = true
+    toggleButton.Draggable = true
+
+    toggleButton.MouseButton1Click:Connect(function()
+        guiVisible = not guiVisible
+        frame.Visible = guiVisible
+    end)
+else
+    -- PC: toggle with RightCtrl
+    UserInputService.InputBegan:Connect(function(input, gp)
+        if not gp and input.KeyCode == Enum.KeyCode.RightControl then
+            guiVisible = not guiVisible
+            frame.Visible = guiVisible
+        end
+    end)
+end
+
+-- Reset
 for btn, state in pairs(toggleStates) do
     btn.BackgroundColor3 = Color3.fromRGB(142,142,147)
     toggleStates[btn] = false
 end
 flipLoopRunning = false
-equipBox.Text = ""
+selectedCartLabel.Text = "Select Cart..."
