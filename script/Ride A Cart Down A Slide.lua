@@ -112,7 +112,20 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Scrollable Cart Selection
+-- Collapsible Scrollable Cart Selection
+local cartHeader = Instance.new("TextButton")
+cartHeader.Size = UDim2.new(0.9,0,0,35)
+cartHeader.BackgroundColor3 = Color3.fromRGB(200,200,200)
+cartHeader.TextColor3 = Color3.fromRGB(0,0,0)
+cartHeader.Font = Enum.Font.Gotham
+cartHeader.TextSize = 16
+cartHeader.Text = "Select Cart ▼"
+cartHeader.Parent = frame
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0,12)
+headerCorner.Parent = cartHeader
+
 local cartFrame = Instance.new("Frame")
 cartFrame.Size = UDim2.new(0.9,0,0,150)
 cartFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
@@ -133,7 +146,6 @@ local listLayout = Instance.new("UIListLayout")
 listLayout.Parent = scrolling
 listLayout.Padding = UDim.new(0,2)
 
--- Cart options
 local carts = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
 local selectedCart = nil
 
@@ -159,6 +171,13 @@ end
 
 listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     scrolling.CanvasSize = UDim2.new(0,0,0,listLayout.AbsoluteContentSize.Y)
+end)
+
+local isExpanded = true
+cartHeader.MouseButton1Click:Connect(function()
+    isExpanded = not isExpanded
+    scrolling.Visible = isExpanded
+    cartHeader.Text = isExpanded and "Select Cart ▼" or "Select Cart ▲"
 end)
 
 -- Equip Cart
@@ -224,7 +243,7 @@ task.spawn(function()
     end
 end)
 
--- GUI Toggle
+-- GUI Toggle (PC: Right Ctrl / Mobile: Button)
 if UserInputService.TouchEnabled then
     local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(0, 50, 0, 50)
@@ -255,3 +274,11 @@ else
         end
     end)
 end
+
+-- Reset toggles/buttons if script runs again
+for btn, state in pairs(toggleStates) do
+    btn.BackgroundColor3 = Color3.fromRGB(142,142,147)
+    toggleStates[btn] = false
+end
+flipLoopRunning = false
+selectedCart = nil
