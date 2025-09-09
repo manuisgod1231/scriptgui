@@ -8,7 +8,7 @@ local GetEquipped = ReplicatedStorage:WaitForChild("GetEquipped")
 local Flip = ReplicatedStorage:WaitForChild("Flip")
 local Turn = ReplicatedStorage:WaitForChild("Turn")
 
--- Remove old GUI if exists
+-- Remove old GUI
 if LocalPlayer:FindFirstChild("ChatGPT_HUB") then
     LocalPlayer["ChatGPT_HUB"]:Destroy()
 end
@@ -138,20 +138,18 @@ local options = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","Lo
 local selectedItem = nil
 
 local optionContainer = Instance.new("ScrollingFrame")
-optionContainer.Size = UDim2.new(1,0,0,150)
+optionContainer.Size = UDim2.new(1,0,0,0)
 optionContainer.Position = UDim2.new(0,0,1,0)
-optionContainer.CanvasSize = UDim2.new(0,0,0,#options*30)
 optionContainer.BackgroundColor3 = Color3.fromRGB(230,230,230)
 optionContainer.Visible = false
 optionContainer.ScrollBarThickness = 5
 optionContainer.Parent = dropdownFrame
-optionContainer.ZIndex = 10
 
 local uiList = Instance.new("UIListLayout")
 uiList.Parent = optionContainer
-uiList.Padding = UDim.new(0,0)
+uiList.Padding = UDim.new(0,2)
 
-for _,opt in ipairs(options) do
+for i,opt in ipairs(options) do
     local optBtn = Instance.new("TextButton")
     optBtn.Size = UDim2.new(1,0,0,30)
     optBtn.Text = opt
@@ -171,13 +169,20 @@ for _,opt in ipairs(options) do
     end)
 end
 
+-- ปรับ CanvasSize
+optionContainer.CanvasSize = UDim2.new(0,0,0,uiList.AbsoluteContentSize.Y)
+uiList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    optionContainer.CanvasSize = UDim2.new(0,0,0,uiList.AbsoluteContentSize.Y)
+end)
+
+-- คลิกเปิด/ปิด Dropdown
 dropdownFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         optionContainer.Visible = not optionContainer.Visible
     end
 end)
 
--- Equip Cart Button
+-- Equip Cart
 createButton("Equip Cart", function()
     if selectedItem then
         if not LocalPlayer:FindFirstChild("EquippedCart") then
@@ -193,7 +198,7 @@ createButton("Equip Cart", function()
     end
 end)
 
--- Spawn Cart Button
+-- Spawn Cart
 createButton("Spawn Cart", function()
     if selectedItem then
         local success, result = pcall(function()
@@ -244,7 +249,7 @@ task.spawn(function()
     end
 end)
 
--- Toggle GUI (Mobile = button, PC = RightCtrl)
+-- GUI Toggle
 if UserInputService.TouchEnabled then
     local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(0, 50, 0, 50)
@@ -270,15 +275,8 @@ if UserInputService.TouchEnabled then
     end)
 else
     UserInputService.InputBegan:Connect(function(input, gp)
-        if not gp and input.KeyCode == Enum.KeyCode.RightControl then
+        if not gp and input.KeyCode == Enum.KeyCode.F1 then
             frame.Visible = not frame.Visible
         end
     end)
 end
-
--- Reset toggle states
-for btn, state in pairs(toggleStates) do
-    btn.BackgroundColor3 = Color3.fromRGB(142,142,147)
-    toggleStates[btn] = false
-end
-flipLoopRunning = false
