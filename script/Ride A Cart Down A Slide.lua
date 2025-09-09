@@ -24,9 +24,9 @@ screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 -- Main Frame
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 300, 0, 450)
-frame.Position = UDim2.new(0.5, -150, 0.5, -225)
-frame.BackgroundColor3 = Color3.fromRGB(242,242,247)
 frame.AnchorPoint = Vector2.new(0.5,0.5)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+frame.BackgroundColor3 = Color3.fromRGB(242,242,247)
 frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
@@ -113,7 +113,7 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Cart Selection (Collapsible) with ScrollFrame
+-- Cart Selection (Collapsible)
 local cartHeader = Instance.new("TextButton")
 cartHeader.Size = UDim2.new(0.9,0,0,35)
 cartHeader.BackgroundColor3 = Color3.fromRGB(200,200,200)
@@ -128,8 +128,9 @@ headerCorner.CornerRadius = UDim.new(0,12)
 headerCorner.Parent = cartHeader
 
 local cartFrame = Instance.new("Frame")
-cartFrame.Size = UDim2.new(0.9,0,0,150)
+cartFrame.Size = UDim2.new(1,0,1,0)
 cartFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
+cartFrame.Position = UDim2.new(0,0,0,0)
 cartFrame.Parent = frame
 cartFrame.Visible = false
 
@@ -138,11 +139,12 @@ cartCorner.CornerRadius = UDim.new(0,12)
 cartCorner.Parent = cartFrame
 
 local scrolling = Instance.new("ScrollingFrame")
-scrolling.Size = UDim2.new(1,-10,1,-10)
-scrolling.Position = UDim2.new(0,5,0,5)
+scrolling.Size = UDim2.new(1,0,1,0)
+scrolling.Position = UDim2.new(0,0,0,0)
 scrolling.CanvasSize = UDim2.new(0,0,0,0)
 scrolling.ScrollBarThickness = 6
-scrolling.BackgroundTransparency = 1
+scrolling.BackgroundTransparency = 0
+scrolling.BackgroundColor3 = Color3.fromRGB(240,240,240)
 scrolling.Parent = cartFrame
 
 local listLayout = Instance.new("UIListLayout")
@@ -170,6 +172,9 @@ for _, cartName in ipairs(carts) do
     btn.MouseButton1Click:Connect(function()
         selectedCart = cartName
         cartHeader.Text = "Selected: "..cartName.." ▼"
+        -- พับ ScrollFrame อัตโนมัติ
+        cartFrame.Visible = false
+        isExpanded = false
     end)
 end
 
@@ -252,7 +257,7 @@ if UserInputService.TouchEnabled then
     toggleButton.Size = UDim2.new(0, 50, 0, 50)
     toggleButton.Position = UDim2.new(1, -60, 1, -60)
     toggleButton.BackgroundColor3 = Color3.fromRGB(52,199,89)
-    toggleButton.Text = "≡"
+    toggleButton.Text = "CMe"
     toggleButton.Font = Enum.Font.GothamBold
     toggleButton.TextSize = 25
     toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
