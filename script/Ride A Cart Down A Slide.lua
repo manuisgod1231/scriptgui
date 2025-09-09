@@ -8,7 +8,7 @@ local GetEquipped = ReplicatedStorage:WaitForChild("GetEquipped")
 local Flip = ReplicatedStorage:WaitForChild("Flip")
 local Turn = ReplicatedStorage:WaitForChild("Turn")
 
--- ลบ GUI เก่าถ้ามี
+-- Remove old GUI if exists
 if LocalPlayer:FindFirstChild("ChatGPT_HUB") then
     LocalPlayer["ChatGPT_HUB"]:Destroy()
 end
@@ -23,8 +23,8 @@ screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Main Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 400)
-frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+frame.Size = UDim2.new(0, 300, 0, 450)
+frame.Position = UDim2.new(0.5, -150, 0.5, -225)
 frame.BackgroundColor3 = Color3.fromRGB(242,242,247)
 frame.AnchorPoint = Vector2.new(0.5,0.5)
 frame.Active = true
@@ -57,7 +57,7 @@ title.Parent = frame
 local flipLoopRunning = false
 local toggleStates = {}
 
--- ปุ่มสร้างง่าย
+-- Button creator
 local function createButton(text, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.9,0,0,40)
@@ -77,7 +77,7 @@ local function createButton(text, callback)
     return btn
 end
 
--- Toggle สร้างง่าย
+-- Toggle creator
 local function createToggle(text, default, callback)
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Size = UDim2.new(0.9,0,0,40)
@@ -137,16 +137,19 @@ dropdownLabel.Parent = dropdownFrame
 local options = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
 local selectedItem = nil
 
-local optionContainer = Instance.new("Frame")
-optionContainer.Size = UDim2.new(1,0,0,#options*30)
+local optionContainer = Instance.new("ScrollingFrame")
+optionContainer.Size = UDim2.new(1,0,0,150)
 optionContainer.Position = UDim2.new(0,0,1,0)
+optionContainer.CanvasSize = UDim2.new(0,0,0,#options*30)
 optionContainer.BackgroundColor3 = Color3.fromRGB(230,230,230)
 optionContainer.Visible = false
+optionContainer.ScrollBarThickness = 5
 optionContainer.Parent = dropdownFrame
 optionContainer.ZIndex = 10
 
 local uiList = Instance.new("UIListLayout")
 uiList.Parent = optionContainer
+uiList.Padding = UDim.new(0,0)
 
 for _,opt in ipairs(options) do
     local optBtn = Instance.new("TextButton")
@@ -156,6 +159,11 @@ for _,opt in ipairs(options) do
     optBtn.Font = Enum.Font.Gotham
     optBtn.TextSize = 14
     optBtn.Parent = optionContainer
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0,6)
+    btnCorner.Parent = optBtn
+
     optBtn.MouseButton1Click:Connect(function()
         selectedItem = opt
         dropdownLabel.Text = "Cart: "..opt
@@ -236,7 +244,7 @@ task.spawn(function()
     end
 end)
 
--- Toggle GUI (PC = RightCtrl, Mobile = button)
+-- Toggle GUI (Mobile = button, PC = RightCtrl)
 if UserInputService.TouchEnabled then
     local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(0, 50, 0, 50)
