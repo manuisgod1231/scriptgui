@@ -17,8 +17,8 @@ end
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "Fun_HUB"
 screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 screenGui.DisplayOrder = 999999
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Main Frame
@@ -30,7 +30,6 @@ frame.AnchorPoint = Vector2.new(0.5,0.5)
 frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
-frame.ClipsDescendants = true
 
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0,16)
@@ -38,22 +37,21 @@ corner.Parent = frame
 
 local layout = Instance.new("UIListLayout")
 layout.Parent = frame
-layout.Padding = UDim.new(0,12)
+layout.Padding = UDim.new(0,8)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-layout.VerticalAlignment = Enum.VerticalAlignment.Top
 
 -- Title
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,40)
 title.BackgroundTransparency = 1
-title.Text = "Fun Hub"
+title.Text = "Fun HUB"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 title.TextColor3 = Color3.fromRGB(0,0,0)
 title.Parent = frame
 
--- Flip loop state
+-- Flip loop
 local flipLoopRunning = false
 local toggleStates = {}
 
@@ -67,7 +65,6 @@ local function createButton(text, callback)
     btn.TextSize = 16
     btn.Text = text
     btn.Parent = frame
-    btn.AutoButtonColor = true
 
     local btnCorner = Instance.new("UICorner")
     btnCorner.CornerRadius = UDim.new(0,12)
@@ -115,62 +112,93 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Equip TextBox
-local equipBox = Instance.new("TextBox")
-equipBox.Size = UDim2.new(0.9,0,0,35)
-equipBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
-equipBox.TextColor3 = Color3.fromRGB(0,0,0)
-equipBox.Text = ""
-equipBox.PlaceholderText = "Type - VIP, Mini, Race, Default, DefalutV2, BigWheel, Rope, LongLarry, Mine, Nyan"
-equipBox.Font = Enum.Font.Gotham
-equipBox.TextScaled = true
-equipBox.TextSize = 10
-equipBox.Parent = frame
+-- Scrollable Cart Selection
+local cartFrame = Instance.new("Frame")
+cartFrame.Size = UDim2.new(0.9,0,0,150)
+cartFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
+cartFrame.Parent = frame
 
-local boxCorner = Instance.new("UICorner")
-boxCorner.CornerRadius = UDim.new(0,12)
-boxCorner.Parent = equipBox
+local cartCorner = Instance.new("UICorner")
+cartCorner.CornerRadius = UDim.new(0,12)
+cartCorner.Parent = cartFrame
 
--- Equip Cart Button
+local scrolling = Instance.new("ScrollingFrame")
+scrolling.Size = UDim2.new(1,0,1,0)
+scrolling.CanvasSize = UDim2.new(0,0,0,0)
+scrolling.ScrollBarThickness = 6
+scrolling.BackgroundTransparency = 1
+scrolling.Parent = cartFrame
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Parent = scrolling
+listLayout.Padding = UDim.new(0,2)
+
+-- Cart options
+local carts = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
+local selectedCart = nil
+
+for _, cartName in ipairs(carts) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1,0,0,30)
+    btn.BackgroundColor3 = Color3.fromRGB(230,230,230)
+    btn.TextColor3 = Color3.fromRGB(0,0,0)
+    btn.Text = cartName
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.Parent = scrolling
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,6)
+    corner.Parent = btn
+
+    btn.MouseButton1Click:Connect(function()
+        selectedCart = cartName
+        print("Selected cart:", cartName)
+    end)
+end
+
+listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scrolling.CanvasSize = UDim2.new(0,0,0,listLayout.AbsoluteContentSize.Y)
+end)
+
+-- Equip Cart
 createButton("Equip Cart", function()
-    local itemName = equipBox.Text
-    if itemName ~= "" then
+    if selectedCart then
         if not LocalPlayer:FindFirstChild("EquippedCart") then
             local strVal = Instance.new("StringValue")
             strVal.Name = "EquippedCart"
             strVal.Value = ""
             strVal.Parent = LocalPlayer
         end
-        LocalPlayer.EquippedCart.Value = itemName
-        print("EquippedCart set to:", itemName)
+        LocalPlayer.EquippedCart.Value = selectedCart
+        print("EquippedCart set to:", selectedCart)
     else
-        warn("Please type a cart name!")
+        warn("Select a cart first!")
     end
 end)
 
--- Spawn Cart Button
+-- Spawn Cart
 createButton("Spawn Cart", function()
-    local itemName = equipBox.Text
-    if itemName ~= "" then
+    if selectedCart then
         local success, result = pcall(function()
-            return GetEquipped:InvokeServer(itemName)
+            return GetEquipped:InvokeServer(selectedCart)
         end)
         if success then
             print("Spawned:", result)
         else
-            warn("Error calling GetEquipped:", result)
+            warn("Error:", result)
         end
     else
-        warn("Please type a cart name!")
+        warn("Select a cart first!")
     end
 end)
 
--- Flip Loop Toggle
+-- Flip Loop
 createToggle("Flip Loop", false, function(value)
     flipLoopRunning = value
 end)
 
--- Flip Once Button
+-- Flip Once
 createButton("Flip Once", function()
     local success, err = pcall(function()
         Flip:FireServer()
@@ -178,12 +206,12 @@ createButton("Flip Once", function()
     if not success then warn("Flip error:",err) end
 end)
 
--- Turn 90° Button
+-- Turn 90°
 createButton("Turn 90°", function()
     Turn:FireServer()
 end)
 
--- Background Flip Loop
+-- Flip Loop Background
 task.spawn(function()
     while true do
         if flipLoopRunning then
