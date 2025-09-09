@@ -222,7 +222,7 @@ if UserInputService.TouchEnabled then
     end)
 else
     UserInputService.InputBegan:Connect(function(input, gp)
-        if not gp and input.KeyCode == Enum.KeyCode.RightControl then
+        if not gp and input.KeyCode == Enum.KeyCode.E then
             frame.Visible = not frame.Visible
         end
     end)
