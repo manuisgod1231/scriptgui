@@ -115,92 +115,45 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Dropdown เลือกรถ
-local dropdownFrame = Instance.new("Frame")
-dropdownFrame.Size = UDim2.new(0.9,0,0,40)
-dropdownFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
-dropdownFrame.Parent = frame
+-- Equip TextBox
+local equipBox = Instance.new("TextBox")
+equipBox.Size = UDim2.new(0.9,0,0,35)
+equipBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
+equipBox.TextColor3 = Color3.fromRGB(0,0,0)
+equipBox.Text = ""
+equipBox.PlaceholderText = "Type - VIP, Mini, Race, Default, DefalutV2, BigWheel, Rope, LongLarry, Mine, Nyan"
+equipBox.Font = Enum.Font.Gotham
+equipBox.TextScaled = true
+equipBox.TextSize = 10
+equipBox.Parent = frame
 
-local dropdownCorner = Instance.new("UICorner")
-dropdownCorner.CornerRadius = UDim.new(0,12)
-dropdownCorner.Parent = dropdownFrame
+local boxCorner = Instance.new("UICorner")
+boxCorner.CornerRadius = UDim.new(0,12)
+boxCorner.Parent = equipBox
 
-local dropdownLabel = Instance.new("TextLabel")
-dropdownLabel.Size = UDim2.new(1,0,1,0)
-dropdownLabel.BackgroundTransparency = 1
-dropdownLabel.Text = "Select Cart"
-dropdownLabel.Font = Enum.Font.Gotham
-dropdownLabel.TextSize = 14
-dropdownLabel.TextColor3 = Color3.fromRGB(0,0,0)
-dropdownLabel.Parent = dropdownFrame
-
-local options = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
-local selectedItem = nil
-
-local optionContainer = Instance.new("ScrollingFrame")
-optionContainer.Size = UDim2.new(1,0,0,0)
-optionContainer.Position = UDim2.new(0,0,1,0)
-optionContainer.BackgroundColor3 = Color3.fromRGB(230,230,230)
-optionContainer.Visible = false
-optionContainer.ScrollBarThickness = 5
-optionContainer.Parent = dropdownFrame
-
-local uiList = Instance.new("UIListLayout")
-uiList.Parent = optionContainer
-uiList.Padding = UDim.new(0,2)
-
-for i,opt in ipairs(options) do
-    local optBtn = Instance.new("TextButton")
-    optBtn.Size = UDim2.new(1,0,0,30)
-    optBtn.Text = opt
-    optBtn.BackgroundColor3 = Color3.fromRGB(255,255,255)
-    optBtn.Font = Enum.Font.Gotham
-    optBtn.TextSize = 14
-    optBtn.Parent = optionContainer
-
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0,6)
-    btnCorner.Parent = optBtn
-
-    optBtn.MouseButton1Click:Connect(function()
-        selectedItem = opt
-        dropdownLabel.Text = "Cart: "..opt
-        optionContainer.Visible = false
-    end)
-end
-
-optionContainer.CanvasSize = UDim2.new(0,0,0,uiList.AbsoluteContentSize.Y)
-uiList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    optionContainer.CanvasSize = UDim2.new(0,0,0,uiList.AbsoluteContentSize.Y)
-end)
-
-dropdownFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        optionContainer.Visible = not optionContainer.Visible
-    end
-end)
-
--- Equip Cart
+-- Equip Cart Button
 createButton("Equip Cart", function()
-    if selectedItem then
+    local itemName = equipBox.Text
+    if itemName ~= "" then
         if not LocalPlayer:FindFirstChild("EquippedCart") then
             local strVal = Instance.new("StringValue")
             strVal.Name = "EquippedCart"
             strVal.Value = ""
             strVal.Parent = LocalPlayer
         end
-        LocalPlayer.EquippedCart.Value = selectedItem
-        print("EquippedCart set to:", selectedItem)
+        LocalPlayer.EquippedCart.Value = itemName
+        print("EquippedCart set to:", itemName)
     else
-        warn("Please select a cart!")
+        warn("Please type a cart name!")
     end
 end)
 
--- Spawn Cart
+-- Spawn Cart Button
 createButton("Spawn Cart", function()
-    if selectedItem then
+    local itemName = equipBox.Text
+    if itemName ~= "" then
         local success, result = pcall(function()
-            return GetEquipped:InvokeServer(selectedItem)
+            return GetEquipped:InvokeServer(itemName)
         end)
         if success then
             print("Spawned:", result)
@@ -208,7 +161,7 @@ createButton("Spawn Cart", function()
             warn("Error calling GetEquipped:", result)
         end
     else
-        warn("Please select a cart!")
+        warn("Please type a cart name!")
     end
 end)
 
@@ -217,19 +170,15 @@ createToggle("Flip Loop", false, function(value)
     flipLoopRunning = value
 end)
 
--- Flip Once
+-- Flip Once Button
 createButton("Flip Once", function()
     local success, err = pcall(function()
         Flip:FireServer()
     end)
-    if not success then
-        warn("Error firing Flip:", err)
-    else
-        print("Flip fired once!")
-    end
+    if not success then warn("Flip error:",err) end
 end)
 
--- Turn 90°
+-- Turn 90° Button
 createButton("Turn 90°", function()
     Turn:FireServer()
 end)
@@ -273,7 +222,7 @@ if UserInputService.TouchEnabled then
     end)
 else
     UserInputService.InputBegan:Connect(function(input, gp)
-        if not gp and input.KeyCode == Enum.KeyCode.E then
+        if not gp and input.KeyCode == Enum.KeyCode.RightControl then
             frame.Visible = not frame.Visible
         end
     end)
