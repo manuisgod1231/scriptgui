@@ -9,13 +9,13 @@ local Flip = ReplicatedStorage:WaitForChild("Flip")
 local Turn = ReplicatedStorage:WaitForChild("Turn")
 
 -- Remove old GUI
-if LocalPlayer:FindFirstChild("ChatGPT_HUB") then
-    LocalPlayer["ChatGPT_HUB"]:Destroy()
+if LocalPlayer:FindFirstChild("Fun_HUB") then
+    LocalPlayer["Fun_HUB"]:Destroy()
 end
 
 -- ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ChatGPT_HUB"
+screenGui.Name = "Fun_HUB"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 screenGui.DisplayOrder = 999999
@@ -47,7 +47,7 @@ layout.VerticalAlignment = Enum.VerticalAlignment.Top
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,40)
 title.BackgroundTransparency = 1
-title.Text = "ChatGPT HUB"
+title.Text = "Fun Hub"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 title.TextColor3 = Color3.fromRGB(0,0,0)
