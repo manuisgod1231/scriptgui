@@ -169,13 +169,11 @@ for i,opt in ipairs(options) do
     end)
 end
 
--- ปรับ CanvasSize
 optionContainer.CanvasSize = UDim2.new(0,0,0,uiList.AbsoluteContentSize.Y)
 uiList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     optionContainer.CanvasSize = UDim2.new(0,0,0,uiList.AbsoluteContentSize.Y)
 end)
 
--- คลิกเปิด/ปิด Dropdown
 dropdownFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         optionContainer.Visible = not optionContainer.Visible
@@ -275,7 +273,7 @@ if UserInputService.TouchEnabled then
     end)
 else
     UserInputService.InputBegan:Connect(function(input, gp)
-        if not gp and input.KeyCode == Enum.KeyCode.F1 then
+        if not gp and input.KeyCode == Enum.KeyCode.E then
             frame.Visible = not frame.Visible
         end
     end)
