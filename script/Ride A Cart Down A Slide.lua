@@ -8,14 +8,14 @@ local GetEquipped = ReplicatedStorage:WaitForChild("GetEquipped")
 local Flip = ReplicatedStorage:WaitForChild("Flip")
 local Turn = ReplicatedStorage:WaitForChild("Turn")
 
--- Remove old GUI
-if LocalPlayer:FindFirstChild("Fun_HUB") then
-    LocalPlayer["Fun_HUB"]:Destroy()
+-- Remove old GUI if exists
+if LocalPlayer:FindFirstChild("CMe_HUB") then
+    LocalPlayer["CMe_HUB"]:Destroy()
 end
 
 -- ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "Fun_HUB"
+screenGui.Name = "CMe_HUB"
 screenGui.ResetOnSpawn = false
 screenGui.DisplayOrder = 999999
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
@@ -35,6 +35,7 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0,16)
 corner.Parent = frame
 
+-- Layout
 local layout = Instance.new("UIListLayout")
 layout.Parent = frame
 layout.Padding = UDim.new(0,8)
@@ -45,7 +46,7 @@ layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,40)
 title.BackgroundTransparency = 1
-title.Text = "Fun HUB"
+title.Text = "CMe HUB"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 title.TextColor3 = Color3.fromRGB(0,0,0)
@@ -112,7 +113,7 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Collapsible Scrollable Cart Selection
+-- Cart Selection (Collapsible)
 local cartHeader = Instance.new("TextButton")
 cartHeader.Size = UDim2.new(0.9,0,0,35)
 cartHeader.BackgroundColor3 = Color3.fromRGB(200,200,200)
@@ -130,6 +131,7 @@ local cartFrame = Instance.new("Frame")
 cartFrame.Size = UDim2.new(0.9,0,0,150)
 cartFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
 cartFrame.Parent = frame
+cartFrame.Visible = false
 
 local cartCorner = Instance.new("UICorner")
 cartCorner.CornerRadius = UDim.new(0,12)
@@ -165,7 +167,7 @@ for _, cartName in ipairs(carts) do
 
     btn.MouseButton1Click:Connect(function()
         selectedCart = cartName
-        print("Selected cart:", cartName)
+        cartHeader.Text = "Selected: "..cartName.." ▼"
     end)
 end
 
@@ -176,8 +178,7 @@ end)
 local isExpanded = true
 cartHeader.MouseButton1Click:Connect(function()
     isExpanded = not isExpanded
-    scrolling.Visible = isExpanded
-    cartHeader.Text = isExpanded and "Select Cart ▼" or "Select Cart ▲"
+    cartFrame.Visible = isExpanded
 end)
 
 -- Equip Cart
@@ -243,7 +244,7 @@ task.spawn(function()
     end
 end)
 
--- GUI Toggle (PC: Right Ctrl / Mobile: Button)
+-- GUI Toggle (PC: E / Mobile: Button)
 if UserInputService.TouchEnabled then
     local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(0, 50, 0, 50)
@@ -268,17 +269,12 @@ if UserInputService.TouchEnabled then
         frame.Visible = guiVisible
     end)
 else
-    UserInputService.InputBegan:Connect(function(input, gp)
-        if not gp and input.KeyCode == Enum.KeyCode.E then
-            frame.Visible = not frame.Visible
+    local guiVisible = true
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.E then
+            guiVisible = not guiVisible
+            frame.Visible = guiVisible
         end
     end)
 end
-
--- Reset toggles/buttons if script runs again
-for btn, state in pairs(toggleStates) do
-    btn.BackgroundColor3 = Color3.fromRGB(142,142,147)
-    toggleStates[btn] = false
-end
-flipLoopRunning = false
-selectedCart = nil
