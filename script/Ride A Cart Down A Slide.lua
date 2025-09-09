@@ -1,12 +1,13 @@
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
+-- Remotes
 local GetEquipped = ReplicatedStorage:WaitForChild("GetEquipped")
 local Flip = ReplicatedStorage:WaitForChild("Flip")
 local Turn = ReplicatedStorage:WaitForChild("Turn")
+local PurchaseBullet = ReplicatedStorage:WaitForChild("PurchaseBullet")
 
 -- Remove old GUI if exists
 if LocalPlayer:FindFirstChild("CMe_HUB") then
@@ -17,30 +18,29 @@ end
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CMe_HUB"
 screenGui.ResetOnSpawn = false
-screenGui.DisplayOrder = 999999
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Main Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 450)
-frame.AnchorPoint = Vector2.new(0.5,0.5)
-frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+frame.Size = UDim2.new(0, 320, 0, 500)
+frame.Position = UDim2.new(0.5, -160, 0.5, -250)
 frame.BackgroundColor3 = Color3.fromRGB(242,242,247)
+frame.AnchorPoint = Vector2.new(0.5,0.5)
 frame.Active = true
 frame.Draggable = true
+frame.ClipsDescendants = true
 frame.Parent = screenGui
 
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0,16)
 corner.Parent = frame
 
--- Layout
 local layout = Instance.new("UIListLayout")
 layout.Parent = frame
-layout.Padding = UDim.new(0,8)
+layout.Padding = UDim.new(0,12)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.VerticalAlignment = Enum.VerticalAlignment.Top
 
 -- Title
 local title = Instance.new("TextLabel")
@@ -52,11 +52,7 @@ title.TextSize = 20
 title.TextColor3 = Color3.fromRGB(0,0,0)
 title.Parent = frame
 
--- Flip loop
-local flipLoopRunning = false
-local toggleStates = {}
-
--- Button creator
+-- Button function
 local function createButton(text, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.9,0,0,40)
@@ -66,16 +62,16 @@ local function createButton(text, callback)
     btn.TextSize = 16
     btn.Text = text
     btn.Parent = frame
-
+    btn.AutoButtonColor = true
     local btnCorner = Instance.new("UICorner")
     btnCorner.CornerRadius = UDim.new(0,12)
     btnCorner.Parent = btn
-
     btn.MouseButton1Click:Connect(callback)
     return btn
 end
 
--- Toggle creator
+-- Toggle function
+local toggleStates = {}
 local function createToggle(text, default, callback)
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Size = UDim2.new(0.9,0,0,40)
@@ -98,7 +94,6 @@ local function createToggle(text, default, callback)
     toggleBtn.BackgroundColor3 = default and Color3.fromRGB(52,199,89) or Color3.fromRGB(142,142,147)
     toggleBtn.Text = ""
     toggleBtn.Parent = toggleFrame
-
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0,12)
     corner.Parent = toggleBtn
@@ -113,175 +108,149 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Cart Selection (Collapsible)
-local cartHeader = Instance.new("TextButton")
-cartHeader.Size = UDim2.new(0.9,0,0,35)
-cartHeader.BackgroundColor3 = Color3.fromRGB(200,200,200)
-cartHeader.TextColor3 = Color3.fromRGB(0,0,0)
-cartHeader.Font = Enum.Font.Gotham
-cartHeader.TextSize = 16
-cartHeader.Text = "Select Cart ▼"
-cartHeader.Parent = frame
-
-local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0,12)
-headerCorner.Parent = cartHeader
-
-local cartFrame = Instance.new("Frame")
-cartFrame.Size = UDim2.new(1,0,1,0)
-cartFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
-cartFrame.Position = UDim2.new(0,0,0,0)
-cartFrame.Parent = frame
-cartFrame.Visible = false
-
-local cartCorner = Instance.new("UICorner")
-cartCorner.CornerRadius = UDim.new(0,12)
-cartCorner.Parent = cartFrame
-
-local scrolling = Instance.new("ScrollingFrame")
-scrolling.Size = UDim2.new(1,0,1,0)
-scrolling.Position = UDim2.new(0,0,0,0)
-scrolling.CanvasSize = UDim2.new(0,0,0,0)
-scrolling.ScrollBarThickness = 6
-scrolling.BackgroundTransparency = 0
-scrolling.BackgroundColor3 = Color3.fromRGB(240,240,240)
-scrolling.Parent = cartFrame
-
-local listLayout = Instance.new("UIListLayout")
-listLayout.Parent = scrolling
-listLayout.Padding = UDim.new(0,2)
-listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local carts = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
-local selectedCart = nil
-
-for _, cartName in ipairs(carts) do
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.95,0,0,30)
-    btn.BackgroundColor3 = Color3.fromRGB(230,230,230)
-    btn.TextColor3 = Color3.fromRGB(0,0,0)
-    btn.Text = cartName
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 14
-    btn.Parent = scrolling
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0,6)
-    corner.Parent = btn
-
-    btn.MouseButton1Click:Connect(function()
-        selectedCart = cartName
-        cartHeader.Text = "Selected: "..cartName.." ▼"
-        -- พับ ScrollFrame อัตโนมัติ
-        cartFrame.Visible = false
-        isExpanded = false
-    end)
-end
-
-listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    scrolling.CanvasSize = UDim2.new(0,0,0,listLayout.AbsoluteContentSize.Y)
-end)
-
-local isExpanded = true
-cartHeader.MouseButton1Click:Connect(function()
-    isExpanded = not isExpanded
-    cartFrame.Visible = isExpanded
-end)
-
--- Equip Cart Button
-createButton("Equip Cart", function()
-    if selectedCart then
-        if not LocalPlayer:FindFirstChild("EquippedCart") then
-            local strVal = Instance.new("StringValue")
-            strVal.Name = "EquippedCart"
-            strVal.Value = ""
-            strVal.Parent = LocalPlayer
-        end
-        LocalPlayer.EquippedCart.Value = selectedCart
-        print("EquippedCart set to:", selectedCart)
-    else
-        warn("Select a cart first!")
-    end
-end)
-
--- Spawn Cart Button
-createButton("Spawn Cart", function()
-    if selectedCart then
-        local success, result = pcall(function()
-            return GetEquipped:InvokeServer(selectedCart)
-        end)
-        if success then
-            print("Spawned:", result)
-        else
-            warn("Error:", result)
-        end
-    else
-        warn("Select a cart first!")
-    end
-end)
-
--- Flip Loop Toggle
+-- Flip Loop
+local flipLoopRunning = false
 createToggle("Flip Loop", false, function(value)
     flipLoopRunning = value
 end)
 
--- Flip Once
-createButton("Flip Once", function()
-    local success, err = pcall(function()
-        Flip:FireServer()
-    end)
-    if not success then warn("Flip error:",err) end
-end)
-
--- Turn 90°
-createButton("Turn 90°", function()
-    Turn:FireServer()
-end)
-
--- Flip Loop Background
 task.spawn(function()
     while true do
         if flipLoopRunning then
-            local success, err = pcall(function()
-                Flip:FireServer()
-            end)
-            if not success then warn("Flip error:",err) end
+            pcall(function() Flip:FireServer() end)
         end
         task.wait(0.2)
     end
 end)
 
--- GUI Toggle
-if UserInputService.TouchEnabled then
-    local toggleButton = Instance.new("TextButton")
-    toggleButton.Size = UDim2.new(0, 50, 0, 50)
-    toggleButton.Position = UDim2.new(1, -60, 1, -60)
-    toggleButton.BackgroundColor3 = Color3.fromRGB(52,199,89)
-    toggleButton.Text = "CMe"
-    toggleButton.Font = Enum.Font.GothamBold
-    toggleButton.TextSize = 25
-    toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
-    toggleButton.Parent = screenGui
+-- Turn 90°
+createButton("Turn 90 (สันยรักองศา)", function()
+    Turn:FireServer()
+end)
 
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0,12)
-    toggleCorner.Parent = toggleButton
+-- Equip Cart TextBox
+local equipBox = Instance.new("TextBox")
+equipBox.Size = UDim2.new(0.9,0,0,35)
+equipBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
+equipBox.TextColor3 = Color3.fromRGB(0,0,0)
+equipBox.Text = ""
+equipBox.PlaceholderText = "Type - VIP, Mini, Race, Default, DefalutV2, BigWheel, Rope, LongLarry, Mine, Nyan"
+equipBox.Font = Enum.Font.Gotham
+equipBox.TextScaled = true
+equipBox.TextSize = 10
+equipBox.Parent = frame
+local boxCorner = Instance.new("UICorner")
+boxCorner.CornerRadius = UDim.new(0,12)
+boxCorner.Parent = equipBox
 
-    toggleButton.Active = true
-    toggleButton.Draggable = true
+-- Spawn Cart Button
+local spawnCartBtn = createButton("Spawn Cart", function()
+    local name = equipBox.Text
+    if name ~= "" then
+        pcall(function()
+            GetEquipped:InvokeServer(name)
+        end)
+    end
+end)
 
-    local guiVisible = true
-    toggleButton.MouseButton1Click:Connect(function()
-        guiVisible = not guiVisible
-        frame.Visible = guiVisible
-    end)
-else
-    local guiVisible = true
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == Enum.KeyCode.E then
-            guiVisible = not guiVisible
-            frame.Visible = guiVisible
+-- Equip Bullet Button
+local equipBulletBtn = createButton("Equip Bullet", function()
+    local args = { "Default", 0 }
+    pcall(function() PurchaseBullet:FireServer(unpack(args)) end)
+end)
+
+-- Bullet Selection
+if not LocalPlayer:FindFirstChild("EquippedBullet") then
+    local strVal = Instance.new("StringValue")
+    strVal.Name = "EquippedBullet"
+    strVal.Value = "Default"
+    strVal.Parent = LocalPlayer
+end
+
+local bulletHeader = Instance.new("TextButton")
+bulletHeader.Size = UDim2.new(0.9,0,0,35)
+bulletHeader.BackgroundColor3 = Color3.fromRGB(200,200,200)
+bulletHeader.TextColor3 = Color3.fromRGB(0,0,0)
+bulletHeader.Font = Enum.Font.Gotham
+bulletHeader.TextSize = 16
+bulletHeader.Text = "Select Bullet ▼"
+bulletHeader.Parent = frame
+local bulletCorner = Instance.new("UICorner")
+bulletCorner.CornerRadius = UDim.new(0,12)
+bulletCorner.Parent = bulletHeader
+
+local bulletFrame = Instance.new("Frame")
+bulletFrame.Size = UDim2.new(0.95,0,0,80)
+bulletFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
+bulletFrame.Visible = false
+bulletFrame.Parent = frame
+local bulletLayout = Instance.new("UIListLayout")
+bulletLayout.Parent = bulletFrame
+bulletLayout.Padding = UDim.new(0,2)
+bulletLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local bullets = {"Default","Big"}
+local isBulletExpanded = false
+local otherButtons = {spawnCartBtn, equipBulletBtn, bulletHeader}
+
+for _, bulletName in ipairs(bullets) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.95,0,0,30)
+    btn.BackgroundColor3 = Color3.fromRGB(230,230,230)
+    btn.TextColor3 = Color3.fromRGB(0,0,0)
+    btn.Text = bulletName
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.Parent = bulletFrame
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,6)
+    corner.Parent = btn
+
+    btn.MouseButton1Click:Connect(function()
+        LocalPlayer.EquippedBullet.Value = bulletName
+        bulletHeader.Text = "Selected Bullet: "..bulletName.." ▼"
+        bulletFrame.Visible = false
+        isBulletExpanded = false
+        for _, b in ipairs(otherButtons) do
+            b.Visible = true
         end
     end)
 end
+
+bulletHeader.MouseButton1Click:Connect(function()
+    isBulletExpanded = not isBulletExpanded
+    bulletFrame.Visible = isBulletExpanded
+    for _, b in ipairs(otherButtons) do
+        b.Visible = not isBulletExpanded
+    end
+end)
+
+-- GUI Toggle
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 50, 0, 50)
+toggleButton.Position = UDim2.new(1, -60, 1, -60)
+toggleButton.BackgroundColor3 = Color3.fromRGB(52,199,89)
+toggleButton.Text = "CMe"
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 25
+toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
+toggleButton.Parent = screenGui
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0,12)
+toggleButton.Active = true
+toggleButton.Draggable = true
+
+local guiVisible = true
+toggleButton.MouseButton1Click:Connect(function()
+    guiVisible = not guiVisible
+    frame.Visible = guiVisible
+end)
+
+-- PC toggle E key
+local UserInputService = game:GetService("UserInputService")
+UserInputService.InputBegan:Connect(function(input, processed)
+    if input.KeyCode == Enum.KeyCode.E and not processed then
+        guiVisible = not guiVisible
+        frame.Visible = guiVisible
+    end
+end)
