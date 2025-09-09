@@ -113,7 +113,7 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Cart Selection (Collapsible)
+-- Cart Selection (Collapsible) with ScrollFrame
 local cartHeader = Instance.new("TextButton")
 cartHeader.Size = UDim2.new(0.9,0,0,35)
 cartHeader.BackgroundColor3 = Color3.fromRGB(200,200,200)
@@ -138,7 +138,8 @@ cartCorner.CornerRadius = UDim.new(0,12)
 cartCorner.Parent = cartFrame
 
 local scrolling = Instance.new("ScrollingFrame")
-scrolling.Size = UDim2.new(1,0,1,0)
+scrolling.Size = UDim2.new(1,-10,1,-10)
+scrolling.Position = UDim2.new(0,5,0,5)
 scrolling.CanvasSize = UDim2.new(0,0,0,0)
 scrolling.ScrollBarThickness = 6
 scrolling.BackgroundTransparency = 1
@@ -147,13 +148,14 @@ scrolling.Parent = cartFrame
 local listLayout = Instance.new("UIListLayout")
 listLayout.Parent = scrolling
 listLayout.Padding = UDim.new(0,2)
+listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 local carts = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
 local selectedCart = nil
 
 for _, cartName in ipairs(carts) do
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1,0,0,30)
+    btn.Size = UDim2.new(0.95,0,0,30)
     btn.BackgroundColor3 = Color3.fromRGB(230,230,230)
     btn.TextColor3 = Color3.fromRGB(0,0,0)
     btn.Text = cartName
@@ -181,7 +183,7 @@ cartHeader.MouseButton1Click:Connect(function()
     cartFrame.Visible = isExpanded
 end)
 
--- Equip Cart
+-- Equip Cart Button
 createButton("Equip Cart", function()
     if selectedCart then
         if not LocalPlayer:FindFirstChild("EquippedCart") then
@@ -197,7 +199,7 @@ createButton("Equip Cart", function()
     end
 end)
 
--- Spawn Cart
+-- Spawn Cart Button
 createButton("Spawn Cart", function()
     if selectedCart then
         local success, result = pcall(function()
@@ -213,7 +215,7 @@ createButton("Spawn Cart", function()
     end
 end)
 
--- Flip Loop
+-- Flip Loop Toggle
 createToggle("Flip Loop", false, function(value)
     flipLoopRunning = value
 end)
@@ -244,7 +246,7 @@ task.spawn(function()
     end
 end)
 
--- GUI Toggle (PC: E / Mobile: Button)
+-- GUI Toggle
 if UserInputService.TouchEnabled then
     local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(0, 50, 0, 50)
