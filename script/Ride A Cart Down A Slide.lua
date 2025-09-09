@@ -1,6 +1,7 @@
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 local GetEquipped = ReplicatedStorage:WaitForChild("GetEquipped")
@@ -22,8 +23,8 @@ screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Main Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 420)
-frame.Position = UDim2.new(0.5, -150, 0.5, -210)
+frame.Size = UDim2.new(0, 300, 0, 400)
+frame.Position = UDim2.new(0.5, -150, 0.5, -200)
 frame.BackgroundColor3 = Color3.fromRGB(242,242,247)
 frame.AnchorPoint = Vector2.new(0.5,0.5)
 frame.Active = true
@@ -114,40 +115,7 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Equip TextBox
-local equipBox = Instance.new("TextBox")
-equipBox.Size = UDim2.new(0.9,0,0,35)
-equipBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
-equipBox.TextColor3 = Color3.fromRGB(0,0,0)
-equipBox.Text = ""
-equipBox.PlaceholderText = "Type - VIP, Mini, Race, Default, DefalutV2, BigWheel, Rope, LongLarry, Mine, Nyan"
-equipBox.Font = Enum.Font.Gotham
-equipBox.TextScaled = true
-equipBox.TextSize = 10
-equipBox.Parent = frame
-
-local boxCorner = Instance.new("UICorner")
-boxCorner.CornerRadius = UDim.new(0,12)
-boxCorner.Parent = equipBox
-
--- Equip Cart Button
-createButton("Equip Cart", function()
-    local itemName = equipBox.Text
-    if itemName ~= "" then
-        if not LocalPlayer:FindFirstChild("EquippedCart") then
-            local strVal = Instance.new("StringValue")
-            strVal.Name = "EquippedCart"
-            strVal.Value = ""
-            strVal.Parent = LocalPlayer
-        end
-        LocalPlayer.EquippedCart.Value = itemName
-        print("EquippedCart set to:", itemName)
-    else
-        warn("Please type something in the box!")
-    end
-end)
-
--- Dropdown เลือกรถ (Spawn Cart)
+-- Dropdown เลือกรถ
 local dropdownFrame = Instance.new("Frame")
 dropdownFrame.Size = UDim2.new(0.9,0,0,40)
 dropdownFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
@@ -201,6 +169,22 @@ dropdownFrame.InputBegan:Connect(function(input)
     end
 end)
 
+-- Equip Cart Button
+createButton("Equip Cart", function()
+    if selectedItem then
+        if not LocalPlayer:FindFirstChild("EquippedCart") then
+            local strVal = Instance.new("StringValue")
+            strVal.Name = "EquippedCart"
+            strVal.Value = ""
+            strVal.Parent = LocalPlayer
+        end
+        LocalPlayer.EquippedCart.Value = selectedItem
+        print("EquippedCart set to:", selectedItem)
+    else
+        warn("Please select a cart!")
+    end
+end)
+
 -- Spawn Cart Button
 createButton("Spawn Cart", function()
     if selectedItem then
@@ -213,7 +197,7 @@ createButton("Spawn Cart", function()
             warn("Error calling GetEquipped:", result)
         end
     else
-        warn("Please select a cart from dropdown!")
+        warn("Please select a cart!")
     end
 end)
 
@@ -253,7 +237,6 @@ task.spawn(function()
 end)
 
 -- Toggle GUI (PC = RightCtrl, Mobile = button)
-local UserInputService = game:GetService("UserInputService")
 if UserInputService.TouchEnabled then
     local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(0, 50, 0, 50)
@@ -291,4 +274,3 @@ for btn, state in pairs(toggleStates) do
     toggleStates[btn] = false
 end
 flipLoopRunning = false
-equipBox.Text = ""
