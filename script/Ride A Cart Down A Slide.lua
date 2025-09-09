@@ -1,6 +1,5 @@
 -- Services
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
@@ -8,7 +7,7 @@ local GetEquipped = ReplicatedStorage:WaitForChild("GetEquipped")
 local Flip = ReplicatedStorage:WaitForChild("Flip")
 local Turn = ReplicatedStorage:WaitForChild("Turn")
 
--- Remove old GUI if exists
+-- ลบ GUI เก่าถ้ามี
 if LocalPlayer:FindFirstChild("ChatGPT_HUB") then
     LocalPlayer["ChatGPT_HUB"]:Destroy()
 end
@@ -18,12 +17,13 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ChatGPT_HUB"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+screenGui.DisplayOrder = 999999
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Main Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 450)
-frame.Position = UDim2.new(0.5, -150, 0.5, -225)
+frame.Size = UDim2.new(0, 300, 0, 420)
+frame.Position = UDim2.new(0.5, -150, 0.5, -210)
 frame.BackgroundColor3 = Color3.fromRGB(242,242,247)
 frame.AnchorPoint = Vector2.new(0.5,0.5)
 frame.Active = true
@@ -56,7 +56,7 @@ title.Parent = frame
 local flipLoopRunning = false
 local toggleStates = {}
 
--- Button function
+-- ปุ่มสร้างง่าย
 local function createButton(text, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.9,0,0,40)
@@ -76,7 +76,7 @@ local function createButton(text, callback)
     return btn
 end
 
--- Toggle function
+-- Toggle สร้างง่าย
 local function createToggle(text, default, callback)
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Size = UDim2.new(0.9,0,0,40)
@@ -114,80 +114,110 @@ local function createToggle(text, default, callback)
     end)
 end
 
--- Cart selector
-local selectorFrame = Instance.new("Frame")
-selectorFrame.Size = UDim2.new(0.9,0,0,130)
-selectorFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
-selectorFrame.Parent = frame
+-- Equip TextBox
+local equipBox = Instance.new("TextBox")
+equipBox.Size = UDim2.new(0.9,0,0,35)
+equipBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
+equipBox.TextColor3 = Color3.fromRGB(0,0,0)
+equipBox.Text = ""
+equipBox.PlaceholderText = "Type - VIP, Mini, Race, Default, DefalutV2, BigWheel, Rope, LongLarry, Mine, Nyan"
+equipBox.Font = Enum.Font.Gotham
+equipBox.TextScaled = true
+equipBox.TextSize = 10
+equipBox.Parent = frame
 
-local selectorCorner = Instance.new("UICorner")
-selectorCorner.CornerRadius = UDim.new(0,12)
-selectorCorner.Parent = selectorFrame
+local boxCorner = Instance.new("UICorner")
+boxCorner.CornerRadius = UDim.new(0,12)
+boxCorner.Parent = equipBox
 
-local selectedCartLabel = Instance.new("TextLabel")
-selectedCartLabel.Size = UDim2.new(1,0,0,30)
-selectedCartLabel.BackgroundTransparency = 1
-selectedCartLabel.Text = "Select Cart..."
-selectedCartLabel.Font = Enum.Font.Gotham
-selectedCartLabel.TextSize = 14
-selectedCartLabel.TextColor3 = Color3.fromRGB(0,0,0)
-selectedCartLabel.Parent = selectorFrame
+-- Equip Cart Button
+createButton("Equip Cart", function()
+    local itemName = equipBox.Text
+    if itemName ~= "" then
+        if not LocalPlayer:FindFirstChild("EquippedCart") then
+            local strVal = Instance.new("StringValue")
+            strVal.Name = "EquippedCart"
+            strVal.Value = ""
+            strVal.Parent = LocalPlayer
+        end
+        LocalPlayer.EquippedCart.Value = itemName
+        print("EquippedCart set to:", itemName)
+    else
+        warn("Please type something in the box!")
+    end
+end)
 
-local scroll = Instance.new("ScrollingFrame")
-scroll.Size = UDim2.new(1,0,1,-30)
-scroll.Position = UDim2.new(0,0,0,30)
-scroll.BackgroundTransparency = 1
-scroll.CanvasSize = UDim2.new(0,0,0,0)
-scroll.ScrollBarThickness = 6
-scroll.Parent = selectorFrame
+-- Dropdown เลือกรถ (Spawn Cart)
+local dropdownFrame = Instance.new("Frame")
+dropdownFrame.Size = UDim2.new(0.9,0,0,40)
+dropdownFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
+dropdownFrame.Parent = frame
 
-local listLayout = Instance.new("UIListLayout")
-listLayout.Parent = scroll
-listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-listLayout.Padding = UDim.new(0,4)
+local dropdownCorner = Instance.new("UICorner")
+dropdownCorner.CornerRadius = UDim.new(0,12)
+dropdownCorner.Parent = dropdownFrame
 
-local carts = {"VIP","Mini","Race","Default","DefaultV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
-for _,cartName in ipairs(carts) do
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1,0,0,30)
-    btn.BackgroundColor3 = Color3.fromRGB(230,230,230)
-    btn.Text = cartName
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 14
-    btn.TextColor3 = Color3.fromRGB(0,0,0)
-    btn.Parent = scroll
+local dropdownLabel = Instance.new("TextLabel")
+dropdownLabel.Size = UDim2.new(1,0,1,0)
+dropdownLabel.BackgroundTransparency = 1
+dropdownLabel.Text = "Select Cart"
+dropdownLabel.Font = Enum.Font.Gotham
+dropdownLabel.TextSize = 14
+dropdownLabel.TextColor3 = Color3.fromRGB(0,0,0)
+dropdownLabel.Parent = dropdownFrame
 
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0,8)
-    corner.Parent = btn
+local options = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
+local selectedItem = nil
 
-    btn.MouseButton1Click:Connect(function()
-        selectedCartLabel.Text = cartName
+local optionContainer = Instance.new("Frame")
+optionContainer.Size = UDim2.new(1,0,0,#options*30)
+optionContainer.Position = UDim2.new(0,0,1,0)
+optionContainer.BackgroundColor3 = Color3.fromRGB(230,230,230)
+optionContainer.Visible = false
+optionContainer.Parent = dropdownFrame
+optionContainer.ZIndex = 10
+
+local uiList = Instance.new("UIListLayout")
+uiList.Parent = optionContainer
+
+for _,opt in ipairs(options) do
+    local optBtn = Instance.new("TextButton")
+    optBtn.Size = UDim2.new(1,0,0,30)
+    optBtn.Text = opt
+    optBtn.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    optBtn.Font = Enum.Font.Gotham
+    optBtn.TextSize = 14
+    optBtn.Parent = optionContainer
+    optBtn.MouseButton1Click:Connect(function()
+        selectedItem = opt
+        dropdownLabel.Text = "Cart: "..opt
+        optionContainer.Visible = false
     end)
 end
 
-listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    scroll.CanvasSize = UDim2.new(0,0,0,listLayout.AbsoluteContentSize.Y)
+dropdownFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        optionContainer.Visible = not optionContainer.Visible
+    end
 end)
 
--- Spawn Cart
+-- Spawn Cart Button
 createButton("Spawn Cart", function()
-    local cart = selectedCartLabel.Text
-    if cart ~= "Select Cart..." then
+    if selectedItem then
         local success, result = pcall(function()
-            return GetEquipped:InvokeServer(cart)
+            return GetEquipped:InvokeServer(selectedItem)
         end)
         if success then
-            print("Equipped:", result)
+            print("Spawned:", result)
         else
             warn("Error calling GetEquipped:", result)
         end
     else
-        warn("No cart selected!")
+        warn("Please select a cart from dropdown!")
     end
 end)
 
--- Flip Loop
+-- Flip Loop Toggle
 createToggle("Flip Loop", false, function(value)
     flipLoopRunning = value
 end)
@@ -197,15 +227,19 @@ createButton("Flip Once", function()
     local success, err = pcall(function()
         Flip:FireServer()
     end)
-    if not success then warn("Error firing Flip:", err) end
+    if not success then
+        warn("Error firing Flip:", err)
+    else
+        print("Flip fired once!")
+    end
 end)
 
--- Turn
-createButton("Turn", function()
+-- Turn 90°
+createButton("Turn 90°", function()
     Turn:FireServer()
 end)
 
--- Flip loop thread
+-- Background Flip Loop
 task.spawn(function()
     while true do
         if flipLoopRunning then
@@ -218,11 +252,9 @@ task.spawn(function()
     end
 end)
 
--- GUI toggle handling
-local guiVisible = true
-
+-- Toggle GUI (PC = RightCtrl, Mobile = button)
+local UserInputService = game:GetService("UserInputService")
 if UserInputService.TouchEnabled then
-    -- Mobile toggle button
     local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(0, 50, 0, 50)
     toggleButton.Position = UDim2.new(1, -60, 1, -60)
@@ -240,24 +272,23 @@ if UserInputService.TouchEnabled then
     toggleButton.Active = true
     toggleButton.Draggable = true
 
+    local guiVisible = true
     toggleButton.MouseButton1Click:Connect(function()
         guiVisible = not guiVisible
         frame.Visible = guiVisible
     end)
 else
-    -- PC: toggle with RightCtrl
     UserInputService.InputBegan:Connect(function(input, gp)
         if not gp and input.KeyCode == Enum.KeyCode.RightControl then
-            guiVisible = not guiVisible
-            frame.Visible = guiVisible
+            frame.Visible = not frame.Visible
         end
     end)
 end
 
--- Reset
+-- Reset toggle states
 for btn, state in pairs(toggleStates) do
     btn.BackgroundColor3 = Color3.fromRGB(142,142,147)
     toggleStates[btn] = false
 end
 flipLoopRunning = false
-selectedCartLabel.Text = "Select Cart..."
+equipBox.Text = ""
