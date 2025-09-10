@@ -1,23 +1,23 @@
-local Material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()
- 
-local UI = Material.Load({
-    Title = "CMe HUB - Material",
-    Style = 1,
-    SizeX = 400,
-    SizeY = 300,
-    Theme = "Dark"
-})
+local Venyx = loadstring(game:HttpGet("https://raw.githubusercontent.com/Stefanuk12/Venyx-UI-Library/main/source.lua"))()
+local Window = Venyx.new("CMe HUB - Venyx", 5013109572)
 
--- Tabs
-local MainTab = UI.New({Title = "Main"})
-local CartTab = UI.New({Title = "Cart"})
-local BulletTab = UI.New({Title = "Bullet"})
+local MainTab = Window:addPage("Main", 5012544693)
+local CartTab = Window:addPage("Cart", 5012544693)
+local BulletTab = Window:addPage("Bullet", 5012544693)
 
 -- Main
-MainTab.Button({Text = "Flip Once", Callback = function() game:GetService("ReplicatedStorage").Flip:FireServer() end})
+MainTab:addButton("Flip Once", function()
+    game:GetService("ReplicatedStorage").Flip:FireServer()
+end)
+
 local flipLoopRunning = false
-MainTab.Toggle({Text = "Flip Loop", Callback = function(state) flipLoopRunning = state end})
-MainTab.Button({Text = "Turn 90°", Callback = function() game:GetService("ReplicatedStorage").Turn:FireServer() end})
+MainTab:addToggle("Flip Loop", function(state)
+    flipLoopRunning = state
+end)
+
+MainTab:addButton("Turn 90°", function()
+    game:GetService("ReplicatedStorage").Turn:FireServer()
+end)
 
 task.spawn(function()
     while true do
@@ -29,7 +29,8 @@ task.spawn(function()
 end)
 
 -- Cart
-CartTab.Dropdown({Text = "Select Cart", Options = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","LongLarry","Mine","Nyan"}, Callback = function(selected)
+local carts = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
+CartTab:addDropdown("Select Cart", carts, function(selected)
     local player = game:GetService("Players").LocalPlayer
     if not player:FindFirstChild("EquippedCart") then
         local strVal = Instance.new("StringValue")
@@ -37,12 +38,20 @@ CartTab.Dropdown({Text = "Select Cart", Options = {"VIP","Mini","Race","Default"
         strVal.Parent = player
     end
     player.EquippedCart.Value = selected
-end})
-CartTab.Button({Text = "Equip Cart", Callback = function() print("EquippedCart:", game:GetService("Players").LocalPlayer.EquippedCart.Value) end})
-CartTab.Button({Text = "Spawn Cart", Callback = function() game:GetService("ReplicatedStorage").GetEquipped:InvokeServer(game:GetService("Players").LocalPlayer.EquippedCart.Value) end})
+end)
+
+CartTab:addButton("Equip Cart", function()
+    local player = game:GetService("Players").LocalPlayer
+    print("EquippedCart:", player.EquippedCart.Value)
+end)
+
+CartTab:addButton("Spawn Cart", function()
+    local player = game:GetService("Players").LocalPlayer
+    game:GetService("ReplicatedStorage").GetEquipped:InvokeServer(player.EquippedCart.Value)
+end)
 
 -- Bullet
-BulletTab.Dropdown({Text = "Select Bullet", Options = {"Default","Big"}, Callback = function(selected)
+BulletTab:addDropdown("Select Bullet", {"Default","Big"}, function(selected)
     local player = game:GetService("Players").LocalPlayer
     if not player:FindFirstChild("EquippedBullet") then
         local strVal = Instance.new("StringValue")
@@ -50,4 +59,4 @@ BulletTab.Dropdown({Text = "Select Bullet", Options = {"Default","Big"}, Callbac
         strVal.Parent = player
     end
     player.EquippedBullet.Value = selected
-end})
+end)
