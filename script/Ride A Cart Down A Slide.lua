@@ -44,7 +44,7 @@ title.Parent = frame
 -- CONTENT SCROLLING AREA
 -- =======================
 local contentScroll = Instance.new("ScrollingFrame")
-contentScroll.Size = UDim2.new(1,-10,1,-50) -- leave space for title
+contentScroll.Size = UDim2.new(1,-10,1,-50)
 contentScroll.Position = UDim2.new(0,5,0,45)
 contentScroll.BackgroundTransparency = 1
 contentScroll.ScrollBarThickness = 6
@@ -57,7 +57,6 @@ contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
 contentLayout.Parent = contentScroll
 contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
--- auto expand scroll area
 contentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     contentScroll.CanvasSize = UDim2.new(0,0,0,contentLayout.AbsoluteContentSize.Y)
 end)
@@ -81,6 +80,28 @@ local function createButton(text, callback)
 
     btn.MouseButton1Click:Connect(callback)
     return btn
+end
+
+local function createToggle(text, default, callback)
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0.9,0,0,35)
+    toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    toggle.TextColor3 = Color3.fromRGB(255,255,255)
+    toggle.Text = text.." : "..(default and "✅" or "❌")
+    toggle.Font = Enum.Font.Gotham
+    toggle.TextSize = 16
+    toggle.Parent = contentScroll
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,8)
+    corner.Parent = toggle
+
+    local state = default
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        toggle.Text = text.." : "..(state and "✅" or "❌")
+        callback(state)
+    end)
 end
 
 -- Collapsible scrollable selection list
@@ -152,32 +173,6 @@ local function createScrollableSelection(titleText, options, callback)
 end
 
 -- =======================
--- MAIN BUTTONS
--- =======================
-local flipLoopRunning = false
-
-createButton("Flip Once", function()
-    pcall(function() ReplicatedStorage.Flip:FireServer() end)
-end)
-
-createButton("Toggle Flip Loop", function()
-    flipLoopRunning = not flipLoopRunning
-end)
-
-createButton("Turn 90°", function()
-    pcall(function() ReplicatedStorage.Turn:FireServer() end)
-end)
-
-task.spawn(function()
-    while true do
-        if flipLoopRunning then
-            pcall(function() ReplicatedStorage.Flip:FireServer() end)
-        end
-        task.wait(0.2)
-    end
-end)
-
--- =======================
 -- CART SELECTION
 -- =======================
 local carts = {"VIP","Mini","Race","Default","DefalutV2","BigWheel","Rope","LongLarry","Mine","Nyan"}
@@ -191,6 +186,15 @@ createScrollableSelection("Select Cart", carts, function(choice)
         strVal.Parent = LocalPlayer
     end
     LocalPlayer.EquippedCart.Value = selectedCart
+end)
+
+createButton("Equip Cart", function()
+    if selectedCart then
+        LocalPlayer.EquippedCart.Value = selectedCart
+        print("EquippedCart set to:", selectedCart)
+    else
+        warn("Select a cart first!")
+    end
 end)
 
 createButton("Spawn Cart", function()
@@ -222,6 +226,32 @@ createButton("Equip Bullet", function()
         print("EquippedBullet set to:", selectedBullet)
     else
         warn("Select a bullet first!")
+    end
+end)
+
+-- =======================
+-- ACTION BUTTONS (BOTTOM)
+-- =======================
+local flipLoopRunning = false
+
+createButton("Flip Once", function()
+    pcall(function() ReplicatedStorage.Flip:FireServer() end)
+end)
+
+createToggle("Toggle Flip Loop", false, function(state)
+    flipLoopRunning = state
+end)
+
+createButton("Turn 90°", function()
+    pcall(function() ReplicatedStorage.Turn:FireServer() end)
+end)
+
+task.spawn(function()
+    while true do
+        if flipLoopRunning then
+            pcall(function() ReplicatedStorage.Flip:FireServer() end)
+        end
+        task.wait(0.2)
     end
 end)
 
